@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=QVolume
+GenericName=Volume tray widget
+Exec=qvolume
+Icon=audio-volume-medium
+Categories=Qt;KDE;AudioVideo;Audio;

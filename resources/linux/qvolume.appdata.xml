@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+ <id>org.redtide.qvolume</id>
+ <metadata_license>FSFAP</metadata_license>
+ <project_license>GPL-2.0+</project_license>
+ <name>QVolume</name>
+ <summary>Volume tray widget</summary>
+ <description>
+  <p>Simple Qt volume tray tool.</p>
+ </description>
+ <screenshots>
+  <screenshot type="default">
+   <image>https://redtide.github.io/qvolume/screenshot.png</image>
+   <caption>Preview</caption>
+  </screenshot>
+ </screenshots>
+ <launchable type="desktop-id">qvolume.desktop</launchable>
+ <provides>
+​  <binary>qvolume</binary>
+​ </provides>
+ <keywords>
+  <keyword>volume</keyword>
+  <keyword>tray</keyword>
+ </keywords>
+ <url type="homepage">https://redtide.github.io/qvolume</url>
+ <project_group>redtide</project_group>
+ <developer_name>Andrea Zanellato</developer_name>
+ <update_contact>redtid3@gmail.com</update_contact>
+</component>
