@@ -13,27 +13,32 @@
 
     For a full copy of the GNU General Public License see the LICENSE file
 */
-#include "src/ui/volumewidget.hpp"
+#pragma once
 
-#include <QApplication>
-#include <QSystemTrayIcon>
+#include <QMenu>
 
-int main(int argc, char *argv[])
+class QCheckBox;
+class QLabel;
+class QPushButton;
+class QSlider;
+class QVBoxLayout;
+class QWidget;
+class QWidgetAction;
+class MenuVolume : public QMenu
 {
-    QApplication app(argc, argv);
-    QApplication::setQuitOnLastWindowClosed(false);
+    Q_OBJECT
 
-    app.setOrganizationName("AZDrums");
-    app.setOrganizationDomain("azdrums.org");
-    app.setApplicationName("qvolume");
-    app.setApplicationDisplayName("QVolume");
+public:
+    MenuVolume(QWidget *parent = nullptr);
 
-    QIcon icon = QIcon::fromTheme("audio-volume-medium");
-    QSystemTrayIcon* trayIcon = new QSystemTrayIcon(icon);
-    trayIcon->setVisible(true);
+private:
+    QSize sizeHint() const override;
 
-    VolumeMenu w(trayIcon);
-    w.setWindowIcon(icon);
-
-    return app.exec();
-}
+    QWidget       *container;
+    QVBoxLayout   *layout;
+    QLabel        *lblVolume;
+    QCheckBox     *chkMute;
+    QPushButton   *pbnMixer;
+    QSlider       *sldVolume;
+    QWidgetAction *actContainer;
+};

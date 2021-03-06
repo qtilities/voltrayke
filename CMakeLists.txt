@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(QVolume LANGUAGES CXX)
+project(VolTrayke LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -25,35 +25,38 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #endif()
 
 find_package(QT NAMES Qt6 Qt5)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools X11Extras REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools REQUIRED)
 
-set(TS_FILES resources/translations/QVolume_it_IT.ts)
+set(TS_FILES resources/translations/voltrayke_it_IT.ts)
 set(RESOURCE_FILES resources/resources.qrc)
 set(PROJECT_SOURCES
-    src/main.cpp
-    src/ui/prefsdialog.cpp
-    src/ui/prefsdialog.hpp
-    src/ui/prefsdialog.ui
-    src/ui/volumewidget.cpp
-    src/ui/volumewidget.hpp
-    src/ui/volumewidget.ui
+    src/ui/dialogprefs.cpp
+    src/ui/dialogprefs.hpp
+    src/ui/dialogprefs.ui
+    src/ui/menuactions.cpp
+    src/ui/menuactions.hpp
+    src/ui/menuvolume.cpp
+    src/ui/menuvolume.hpp
+    src/ui/menuvolume.ui
+    src/voltrayke.cpp
+    src/voltrayke.hpp
     ${TS_FILES}
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(QVolume
+    qt_add_executable(${PROJECT_NAME}
         ${PROJECT_SOURCES}
         ${RESOURCE_FILES}
     )
     qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 else()
     if(ANDROID)
-        add_library(QVolume SHARED
+        add_library(${PROJECT_NAME} SHARED
             ${PROJECT_SOURCES}
             ${RESOURCE_FILES}
         )
     else()
-        add_executable(QVolume
+        add_executable(${PROJECT_NAME}
             ${PROJECT_SOURCES}
             ${RESOURCE_FILES}
         )
@@ -61,12 +64,13 @@ else()
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME voltrayke)
+
 source_group ("Resource Files" FILES ${RESOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE "src")
-target_link_libraries(QVolume PRIVATE
+target_link_libraries(VolTrayke PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
-    Qt${QT_VERSION_MAJOR}::X11Extras X11
 )
 if (UNIX AND NOT APPLE)
     include (GNUInstallDirs)

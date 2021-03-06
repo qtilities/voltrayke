@@ -1,9 +1,9 @@
-#include "prefsdialog.hpp"
-#include "ui_prefsdialog.h"
+#include "src/ui/dialogprefs.hpp"
+#include "ui_dialogprefs.h"
 
-PrefsDialog::PrefsDialog(QWidget *parent) :
+DialogPrefs::DialogPrefs(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::PrefsDialog)
+    ui(new Ui::DialogPrefs)
 {
     ui->setupUi(this);
 
@@ -14,7 +14,7 @@ PrefsDialog::PrefsDialog(QWidget *parent) :
     ui->grpCmdMix->setLayout(ui->layCmdMix);
     ui->grpScroll->setLayout(ui->layScroll);
 }
-PrefsDialog::~PrefsDialog()
+DialogPrefs::~DialogPrefs()
 {
     delete ui;
 }

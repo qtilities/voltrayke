@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>VolumeMenu</class>
- <widget class="QWidget" name="VolumeMenu">
+ <class>MenuVolume</class>
+ <widget class="QWidget" name="MenuVolume">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>120</width>
-    <height>420</height>
+    <width>110</width>
+    <height>280</height>
    </rect>
   </property>
   <widget class="QWidget" name="verticalLayoutWidget">
@@ -15,8 +15,8 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>101</width>
-     <height>401</height>
+     <width>92</width>
+     <height>261</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="layout">
