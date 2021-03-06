@@ -10,7 +10,7 @@ class VolTrayke : public QApplication
     Q_OBJECT
 
 public:
-    VolTrayke(int, char **);
+    VolTrayke(int &, char **);
 
 private:
 //  void onAboutToQuit();

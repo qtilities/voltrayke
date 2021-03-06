@@ -5,7 +5,7 @@
 #include <QCursor>
 #include <QTranslator>
 
-VolTrayke::VolTrayke(int argc, char *argv[])
+VolTrayke::VolTrayke(int &argc, char *argv[])
     : QApplication(argc, argv)
     , trayIcon(new QSystemTrayIcon(QIcon::fromTheme("audio-volume-medium"), this))
     , mnuVolume(new MenuVolume)
