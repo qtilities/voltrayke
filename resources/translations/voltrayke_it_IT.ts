@@ -87,12 +87,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/menuactions.cpp" line="42"/>
+        <location filename="../../src/ui/menuactions.cpp" line="43"/>
         <source>Error loading about file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/menuactions.cpp" line="48"/>
+        <location filename="../../src/ui/menuactions.cpp" line="52"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
@@ -100,17 +100,20 @@
 <context>
     <name>MenuVolume</name>
     <message>
-        <location filename="../../src/ui/menuvolume.ui" line="41"/>
-        <location filename="../../build/x86-linux-generic-elf-64bit/debug/VolTrayke_autogen/include/ui_menuvolume.h" line="86"/>
-        <location filename="../../src/ui/menuvolume.cpp" line="31"/>
+        <location filename="../../src/ui/menuvolume.ui" line="47"/>
+        <location filename="../../src/ui/menuvolume.cpp" line="45"/>
         <source>Mixer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/menuvolume.ui" line="54"/>
-        <location filename="../../build/x86-linux-generic-elf-64bit/debug/VolTrayke_autogen/include/ui_menuvolume.h" line="87"/>
-        <location filename="../../src/ui/menuvolume.cpp" line="30"/>
+        <location filename="../../src/ui/menuvolume.ui" line="60"/>
+        <location filename="../../src/ui/menuvolume.cpp" line="32"/>
         <source>Mute</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/menuvolume.cpp" line="31"/>
+        <source>0</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
