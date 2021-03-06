@@ -39,6 +39,7 @@ void VolTrayke::onIconActivated(QSystemTrayIcon::ActivationReason reason)
     if (reason == QSystemTrayIcon::Trigger || reason == QSystemTrayIcon::DoubleClick)
     {
         QPoint pos = QCursor::pos();
+        mnuVolume->show();
         pos.setX(pos.x() - mnuVolume->width() / 2);
         mnuVolume->popup(pos);
     }
