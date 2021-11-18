@@ -16,8 +16,10 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools REQUIRED)
 find_package(ALSA)
 find_package(PulseAudio)
 
-set(TS_FILES resources/translations/voltrayke_it_IT.ts)
-
+set(TS_FILES
+    resources/translations/voltrayke.ts
+    resources/translations/voltrayke_it_IT.ts
+)
 set(SOURCES
     src/audio/device.hpp
     src/audio/device.cpp

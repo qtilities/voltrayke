@@ -64,13 +64,13 @@
        <item>
         <widget class="QGroupBox" name="grpAudioDev">
          <property name="title">
-          <string>Audio Device</string>
+          <string>Audio device</string>
          </property>
          <layout class="QFormLayout" name="formLayout">
           <item row="0" column="0">
            <widget class="QLabel" name="lblEngine">
             <property name="text">
-             <string>Engine</string>
+             <string>Backend:</string>
             </property>
            </widget>
           </item>
@@ -165,7 +165,7 @@
           </sizepolicy>
          </property>
          <property name="title">
-          <string>Volume Scrolling</string>
+          <string>Volume scrolling</string>
          </property>
          <layout class="QFormLayout" name="layScroll">
           <property name="horizontalSpacing">
@@ -195,12 +195,12 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Scroll Step:</string>
+             <string>Scroll step:</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="lblStepFine">
+           <widget class="QLabel" name="lblPageStep">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -208,7 +208,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Fine Scroll Step:</string>
+             <string>Page step:</string>
             </property>
            </widget>
           </item>
@@ -223,7 +223,7 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QSpinBox" name="sbxStepFine">
+           <widget class="QSpinBox" name="sbxPageStep">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
               <horstretch>0</horstretch>

@@ -50,8 +50,8 @@ azd::DialogPrefs::DialogPrefs(QWidget* parent)
     ui->chkShowOnClick->setVisible(false);
 
     // TODO: PNMixer use double values
-    ui->lblStepFine->setVisible(false);
-    ui->sbxStepFine->setVisible(false);
+    ui->lblStep->setVisible(false);
+    ui->sbxStep->setVisible(false);
 #endif
     connect(ui->cbxEngine, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, [=](int id) {
@@ -85,7 +85,7 @@ void azd::DialogPrefs::loadSettings()
     ui->chkIgnoreMax->setChecked(settings.ignoreMaxVolume());
     ui->chkMuteOnMiddleClick->setChecked(settings.muteOnMiddleClick());
     ui->chkShowOnClick->setChecked(settings.showOnLeftClick());
-    ui->sbxStep->setValue(settings.pageStep());
+    ui->sbxPageStep->setValue(settings.pageStep());
     ui->txtMixerCmd->setText(settings.mixerCommand());
 }
 
@@ -97,7 +97,7 @@ void azd::DialogPrefs::saveSettings()
     settings.setIgnoreMaxVolume(ui->chkIgnoreMax->isChecked());
     settings.setMuteOnMiddleClick(ui->chkMuteOnMiddleClick->isChecked());
     settings.setShowOnLeftClick(ui->chkShowOnClick->isChecked());
-    settings.setPageStep(ui->sbxStep->value());
+    settings.setPageStep(ui->sbxPageStep->value());
     settings.setMixerCommand(ui->txtMixerCmd->text());
 }
 
@@ -124,7 +124,7 @@ void azd::DialogPrefs::onPrefsChanged()
     settings.setIgnoreMaxVolume(ui->chkIgnoreMax->isChecked());
     settings.setMixerCommand(ui->txtMixerCmd->text());
     settings.setMuteOnMiddleClick(ui->chkMuteOnMiddleClick->isChecked());
-    settings.setPageStep(ui->sbxStep->value());
+    settings.setPageStep(ui->sbxPageStep->value());
     settings.setShowOnLeftClick(ui->chkShowOnClick->isChecked());
 
     hide();
