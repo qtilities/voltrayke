@@ -1,56 +1,53 @@
 /*
-    Copyright (C) 2020-2021 Andrea Zanellato <redtid3@gmail.com>
+    VolTrayke - Volume tray widget.
+    Copyright (C) 2021  Andrea Zanellato <redtid3@gmail.com>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    any later version.
+    the Free Software Foundation; version 2.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    For a full copy of the GNU General Public License see the LICENSE file
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+    SPDX-License-Identifier: GPL-2.0-only
 */
-#include "src/application.hpp"
+#include "application.hpp"
 #include "ui/dialogabout.hpp"
 #include "ui/dialogprefs.hpp"
-#include "src/ui/menuvolume.hpp"
+#include "ui/menuvolume.hpp"
+#include "ui/utils.hpp"
+
+#include "audio/device.hpp"
+#ifdef USE_ALSA
+#include "audio/engine/alsa.hpp"
+#endif
+#ifdef USE_PULSEAUDIO
+#include "audio/engine/pulseaudio.hpp"
+#endif
 
 #include <QAction>
 #include <QCursor>
 #include <QDir>
+#include <QMenu>
+#include <QProcess>
 #include <QScreen>
 #include <QStandardPaths>
 #include <QTextStream>
 #include <QTranslator>
 
+#include <QDebug>
+
 //==============================================================================
 // Utilities
 //==============================================================================
-QScreen* screenAt(const QPoint& pos)
-{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-    return qApp->screenAt(pos);
-#else
-    const QList<QScreen*> screens = QGuiApplication::screens();
-    for (QScreen* screen : screens) {
-        if (screen->geometry().contains(pos))
-            return screen;
-    }
-    return nullptr;
-#endif
-}
+namespace azd {
 
-void centerOnScreen(QWidget* widget)
-{
-    if (const QScreen* screen = screenAt(QCursor::pos())) {
-        QRect rct = screen->geometry();
-        widget->move((rct.width() - widget->width()) / 2,
-                     (rct.height() - widget->height()) / 2);
-    }
-}
 void createAutostartFile()
 {
     QDir configDir(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation));
@@ -80,20 +77,41 @@ void deleteAutostartFile()
 
     file.remove();
 }
+} // namespace azd
 //==============================================================================
 // Application
 //==============================================================================
 azd::VolTrayke::VolTrayke(int& argc, char* argv[])
     : QApplication(argc, argv)
+    , actAutoStart_(new QAction(tr("Auto&start"), this))
+    , trayIcon_(new QSystemTrayIcon(QIcon::fromTheme("audio-volume-medium"), this))
     , dlgAbout_(new DialogAbout)
     , dlgPrefs_(new DialogPrefs)
-    , mnuVolume(new MenuVolume)
-    , trayIcon(new QSystemTrayIcon(QIcon::fromTheme("audio-volume-medium")))
+    , mnuVolume_(new MenuVolume)
+    , engine_(nullptr)
+    , channel_(nullptr)
 {
     setOrganizationName("AZDrums");
     setOrganizationDomain("azdrums.org");
     setApplicationName("voltrayke");
     setApplicationDisplayName("VolTrayke");
+
+    settings_.load();
+    dlgPrefs_->loadSettings();
+#if 1
+    onAudioEngineChanged(settings_.engineId());
+    onAudioDeviceChanged(settings_.channelId());
+    onAudioDeviceListChanged();
+    updateTrayIcon();
+
+    if (channel_)
+        mnuVolume_->setVolume(channel_->volume());
+#endif
+    centerOnScreen(dlgPrefs_);
+    centerOnScreen(dlgAbout_);
+
+    actAutoStart_->setCheckable(true);
+    actAutoStart_->setChecked(settings_.useAutostart());
 
     QAction* actAbout = new QAction(QIcon::fromTheme("help-about"), tr("&About"), this);
     QAction* actPrefs = new QAction(QIcon::fromTheme("preferences-system"), tr("&Preferences"), this);
@@ -105,8 +123,8 @@ azd::VolTrayke::VolTrayke(int& argc, char* argv[])
     mnuActions->addAction(actAbout);
     mnuActions->addAction(actQuit);
 
-    trayIcon->setContextMenu(mnuActions);
-    trayIcon->show();
+    trayIcon_->setContextMenu(mnuActions);
+    trayIcon_->show();
 
     connect(actAbout, &QAction::triggered,
             this, [=] { if (dlgAbout_->isHidden()) dlgAbout_->show(); });
@@ -116,24 +134,155 @@ azd::VolTrayke::VolTrayke(int& argc, char* argv[])
 
     connect(actQuit, &QAction::triggered, this, &VolTrayke::quit);
 
-    connect(this, &QApplication::aboutToQuit, mnuActions, &QObject::deleteLater);
-    connect(this, &QApplication::aboutToQuit, mnuVolume, &QObject::deleteLater);
-    connect(this, &QApplication::aboutToQuit, trayIcon, &QObject::deleteLater);
+    connect(this, &QApplication::aboutToQuit, mnuVolume_, &QObject::deleteLater);
+    connect(this, &QApplication::aboutToQuit, dlgAbout_, &QObject::deleteLater);
+    connect(this, &QApplication::aboutToQuit, dlgPrefs_, &QObject::deleteLater);
+    connect(this, &QApplication::aboutToQuit, trayIcon_, &QObject::deleteLater);
+    connect(this, &QApplication::aboutToQuit, this, &VolTrayke::onAboutToQuit);
 
-    connect(trayIcon, &QSystemTrayIcon::activated, this, &VolTrayke::onIconActivated);
+    connect(dlgPrefs_, &DialogPrefs::sigAudioEngineChanged,
+            this, &VolTrayke::onAudioEngineChanged);
+
+    connect(dlgPrefs_, &DialogPrefs::sigAudioDeviceChanged,
+            this, &VolTrayke::onAudioDeviceChanged);
+
+    connect(mnuVolume_, &MenuVolume::sigRunMixer, this, &VolTrayke::runMixer);
+    connect(mnuVolume_, &MenuVolume::sigMuteToggled, this, [=](bool muted) {
+        if (!channel_)
+            return;
+
+        channel_->setMute(muted);
+        updateTrayIcon();
+    });
+    connect(mnuVolume_, &MenuVolume::sigVolumeChanged, this, [=](int volume) {
+        if (!channel_)
+            return;
+
+        channel_->setVolume(volume);
+        updateTrayIcon();
+    });
+    connect(trayIcon_, &QSystemTrayIcon::activated, this, &VolTrayke::onTrayIconActivated);
 }
-void azd::VolTrayke::onIconActivated(QSystemTrayIcon::ActivationReason reason)
+
+azd::VolTrayke::~VolTrayke()
 {
-    if (reason == QSystemTrayIcon::Trigger || reason == QSystemTrayIcon::DoubleClick) {
-        mnuVolume->show();
+    qDebug() << "Destroyed VolTrayke" << Qt::endl;
+}
 
-        QPoint pos = QCursor::pos();
-        pos.setX(pos.x() - mnuVolume->width() / 2);
+void azd::VolTrayke::onAudioEngineChanged(int engineId)
+{
+    if (engine_) {
+        if (engine_->id() == engineId)
+            return;
 
-        mnuVolume->adjustSize();
-        mnuVolume->popup(pos);
+        if (channel_) {
+            disconnect(channel_, nullptr, this, nullptr);
+            channel_ = nullptr;
+        }
+        disconnect(engine_, &AudioEngine::sinkListChanged,
+                   this, &VolTrayke::onAudioDeviceListChanged);
+    }
+    switch (engineId) {
+#ifdef USE_ALSA
+    case EngineId::Alsa:
+        engine_ = new AlsaEngine(this);
+        break;
+#endif
+#ifdef USE_PULSEAUDIO
+    case EngineId::PulseAudio:
+        engine_ = new PulseAudioEngine(this);
+        break;
+#endif
+    default:
+        engine_ = nullptr;
+        return;
+    }
+    engine_->setIgnoreMaxVolume(settings_.ignoreMaxVolume());
+
+    connect(engine_, &AudioEngine::sinkListChanged,
+            this, &VolTrayke::onAudioDeviceListChanged);
+}
+
+void azd::VolTrayke::onAudioDeviceChanged(int deviceId)
+{
+    if (!engine_ || engine_->sinks().count() <= 0)
+        return;
+
+    if (deviceId < 0)
+        deviceId = 0;
+
+    channel_ = engine_->sinks().at(deviceId);
+
+    connect(channel_, &AudioDevice::muteChanged, this, [=](bool muted) {
+        mnuVolume_->setMute(muted);
+        updateTrayIcon();
+    });
+    connect(channel_, &AudioDevice::volumeChanged, this, [=](int volume) {
+        mnuVolume_->setVolume(volume);
+        updateTrayIcon();
+    });
+}
+
+void azd::VolTrayke::onAudioDeviceListChanged()
+{
+    if (engine_) {
+        QStringList list;
+        for (const AudioDevice* dev : engine_->sinks())
+            list.append(dev->description());
+
+        dlgPrefs_->setDeviceList(list);
     }
 }
+
+void azd::VolTrayke::onAboutToQuit()
+{
+    dlgPrefs_->saveSettings();
+
+    settings_.setUseAutostart(actAutoStart_->isChecked());
+    settings_.useAutostart() ? createAutostartFile()
+                             : deleteAutostartFile();
+    settings_.save();
+}
+
+void azd::VolTrayke::onTrayIconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    if (reason == QSystemTrayIcon::Trigger || reason == QSystemTrayIcon::DoubleClick) {
+        mnuVolume_->show();
+        mnuVolume_->adjustSize();
+        mnuVolume_->popUp();
+    } else if (channel_
+               && settings_.muteOnMiddleClick()
+               && reason == QSystemTrayIcon::MiddleClick) {
+        channel_->toggleMute();
+    }
+}
+
+void azd::VolTrayke::runMixer()
+{
+    QString command = settings_.mixerCommand();
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+    QStringList args = QProcess::splitCommand(command);
+    QProcess::startDetached(args.takeFirst(), args);
+#else
+    QProcess::startDetached(command);
+#endif
+}
+
+void azd::VolTrayke::updateTrayIcon()
+{
+    QString iconName;
+    if (channel_->volume() <= 0 || channel_->mute())
+        iconName = QLatin1String("audio-volume-muted");
+    else if (channel_->volume() <= 33)
+        iconName = QLatin1String("audio-volume-low");
+    else if (channel_->volume() <= 66)
+        iconName = QLatin1String("audio-volume-medium");
+    else
+        iconName = QLatin1String("audio-volume-high");
+
+    trayIcon_->setIcon(QIcon::fromTheme(iconName));
+}
+
 int main(int argc, char* argv[])
 {
     azd::VolTrayke app(argc, argv);

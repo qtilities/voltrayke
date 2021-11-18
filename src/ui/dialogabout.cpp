@@ -20,10 +20,12 @@
 #include "dialogabout.hpp"
 #include "ui_dialogabout.h"
 
+#include <QCloseEvent>
 #include <QFile>
 #include <QIcon>
 #include <QPushButton>
 #include <QTextStream>
+
 #include <QDebug>
 
 azd::DialogAbout::DialogAbout(QWidget* parent)
@@ -41,14 +43,17 @@ azd::DialogAbout::DialogAbout(QWidget* parent)
 
     ui->txtAbout->setHtml(text);
 
-    setLayout(ui->layout);
-    setWindowIcon(QIcon::fromTheme("audio-volume-medium"));
-    setWindowTitle(tr("About"));
-
-    connect(ui->buttonBox->button(QDialogButtonBox::Ok), &QPushButton::clicked, this, &QDialog::hide);
+    connect(ui->buttonBox->button(QDialogButtonBox::Ok), &QPushButton::clicked,
+            this, &QDialog::hide);
 }
 azd::DialogAbout::~DialogAbout()
 {
     delete ui;
     qDebug() << "Destroyed DialogAbout" << Qt::endl;
+}
+
+void azd::DialogAbout::closeEvent(QCloseEvent* event)
+{
+    hide();
+    event->ignore();
 }

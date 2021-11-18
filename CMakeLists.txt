@@ -32,6 +32,8 @@ set(SOURCES
     src/ui/dialogprefs.ui
     src/ui/menuvolume.hpp
     src/ui/menuvolume.cpp
+    src/ui/utils.hpp
+    src/ui/utils.cpp
     src/settings.hpp
     src/settings.cpp
     src/application.hpp

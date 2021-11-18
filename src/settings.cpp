@@ -40,7 +40,7 @@ const bool showKeyboardNotifications = true;
 
 azd::Settings::Settings()
     : engineId_(-1)
-    , deviceId_(-1)
+    , channelId_(-1)
     , pageStep_(Default::pageStep)
     , ignoreMaxVolume_(Default::ignoreMaxVolume)
     , muteOnMiddleClick_(Default::muteOnMiddleClick)
@@ -69,7 +69,7 @@ void azd::Settings::load()
     if (engineId < EngineId::EngineMax)
         engineId_ = engineId;
 
-    deviceId_ = settings.value(QStringLiteral("DeviceId"), -1).toInt();
+    channelId_ = settings.value(QStringLiteral("ChannelId"), -1).toInt();
 
     mixerCommand_ = settings.value(QStringLiteral("MixerCommand"), QString()).toString();
     ignoreMaxVolume_ = settings.value(QStringLiteral("IgnoreMaxVolume"), Default::ignoreMaxVolume).toBool();
@@ -90,7 +90,7 @@ void azd::Settings::save()
                        QApplication::applicationDisplayName());
 
     settings.setValue(QStringLiteral("EngineId"), engineId_);
-    settings.setValue(QStringLiteral("DeviceId"), deviceId_);
+    settings.setValue(QStringLiteral("ChannelId"), channelId_);
     settings.setValue(QStringLiteral("PageStep"), pageStep_);
     settings.setValue(QStringLiteral("IgnoreMaxVolume"), ignoreMaxVolume_);
     settings.setValue(QStringLiteral("MuteOnMiddleClick"), muteOnMiddleClick_);

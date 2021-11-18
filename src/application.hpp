@@ -19,8 +19,13 @@
 */
 #pragma once
 
+#include "settings.hpp"
+
 #include <QApplication>
 #include <QSystemTrayIcon>
+
+class AudioDevice;
+class AudioEngine;
 
 class QAction;
 
@@ -35,14 +40,27 @@ class VolTrayke : public QApplication {
 
 public:
     VolTrayke(int&, char**);
+    ~VolTrayke();
+
+    Settings& settings() { return settings_; }
 
 private:
-    void onIconActivated(QSystemTrayIcon::ActivationReason);
+    void runMixer();
+    void updateTrayIcon();
+
+    void onAboutToQuit();
+    void onAudioEngineChanged(int);
+    void onAudioDeviceChanged(int);
+    void onAudioDeviceListChanged();
+    void onTrayIconActivated(QSystemTrayIcon::ActivationReason);
 
     QAction* actAutoStart_;
+    QSystemTrayIcon* trayIcon_;
     DialogAbout* dlgAbout_;
     DialogPrefs* dlgPrefs_;
-    MenuVolume* mnuVolume;
-    QSystemTrayIcon* trayIcon;
+    MenuVolume* mnuVolume_;
+    Settings settings_;
+    AudioEngine* engine_;
+    AudioDevice* channel_;
 };
 } // namespace azd

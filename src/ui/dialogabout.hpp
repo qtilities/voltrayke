@@ -35,6 +35,8 @@ public:
     ~DialogAbout();
 
 private:
+    void closeEvent(QCloseEvent*) override;
+
     Ui::DialogAbout* ui;
 };
 } // namespace azd

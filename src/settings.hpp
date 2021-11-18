@@ -34,8 +34,8 @@ public:
     int engineId() const { return engineId_; }
     void setEngineId(int id) { engineId_ = id; }
 
-    int deviceId() const { return deviceId_; }
-    void setDevice(int id) { deviceId_ = id; }
+    int channelId() const { return channelId_; }
+    void setChannelId(int id) { channelId_ = id; }
 
     int pageStep() { return pageStep_; }
     void setPageStep(int step) { pageStep_ = step; }
@@ -66,7 +66,7 @@ public:
 
 private:
     int engineId_;
-    int deviceId_;
+    int channelId_;
     int pageStep_;
     bool ignoreMaxVolume_;
     bool muteOnMiddleClick_;
