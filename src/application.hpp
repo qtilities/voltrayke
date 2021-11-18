@@ -1,21 +1,48 @@
+/*
+    VolTrayke - Volume tray widget.
+    Copyright (C) 2021  Andrea Zanellato <redtid3@gmail.com>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; version 2.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+    SPDX-License-Identifier: GPL-2.0-only
+*/
 #pragma once
 
 #include <QApplication>
 #include <QSystemTrayIcon>
 
-class MenuActions;
+class QAction;
+
+namespace azd {
+
+class DialogAbout;
+class DialogPrefs;
 class MenuVolume;
-class VolTrayke : public QApplication
-{
+
+class VolTrayke : public QApplication {
     Q_OBJECT
 
 public:
-    VolTrayke(int &, char **);
+    VolTrayke(int&, char**);
 
 private:
     void onIconActivated(QSystemTrayIcon::ActivationReason);
 
-    MenuActions     *mnuActions;
-    MenuVolume      *mnuVolume;
-    QSystemTrayIcon *trayIcon;
+    QAction* actAutoStart_;
+    DialogAbout* dlgAbout_;
+    DialogPrefs* dlgPrefs_;
+    MenuVolume* mnuVolume;
+    QSystemTrayIcon* trayIcon;
 };
+} // namespace azd
