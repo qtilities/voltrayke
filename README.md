@@ -1,5 +1,6 @@
 # VolTrayke
 
-An audio volume system tray widget, inspired to [PNMixer].
+An audio volume system tray widget,
+inspired by [PNMixer] and LXQt Panel' volume plugin.
 
 [PNMixer]: https://github.com/nicklan/pnmixer/
