@@ -7,6 +7,6 @@ indent_style = space
 insert_final_newline = 1
 trim_trailing_whitespace = 1
 
-[*.html]
+[*.{html,xml}]
 indent_size = 2
 indent_style = tab

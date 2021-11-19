@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+	<id>org.azdrums.voltrayke</id>
+	<metadata_license>CC0-1.0</metadata_license>
+	<project_license>GPL-2.0</project_license>
+	<name>VolTrayke</name>
+	<summary>Audio volume tray widget</summary>
+
+	<content_rating type="oars-1.0" />
+	<url type="homepage">https://redtide.github.io/voltrayke/</url>
+	<project_group>AZDrums</project_group>
+	<developer_name>Andrea Zanellato</developer_name>
+	<update_contact>redtid3@gmail.com</update_contact>
+
+	<description>
+		<p>VolTrayke is an audio volume system tray widget.</p>
+	</description>
+
+	<!--screenshots>
+		<screenshot type="default">
+			<caption>The main widget</caption>
+			<image>https://github.com/redtide/voltrayke/blob/master/screenshot.png</image>
+		</screenshot>
+	</screenshots-->
+
+	<launchable type="desktop-id">org.azdrums.voltrayke.desktop</launchable>
+	<provides>
+​		<binary>voltrayke</binary>
+​	</provides>
+
+	<keywords>
+		<keyword>volume</keyword>
+		<keyword>tray</keyword>
+	</keywords>
+
+	<!--releases>
+		<release version="0.1.0" date="2022-MM-MM" />
+	</releases-->
+</component>

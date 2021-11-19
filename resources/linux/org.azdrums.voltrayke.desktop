@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=QVolume
+Name=VolTrayke
 GenericName=Volume tray widget
-Exec=qvolume
+Exec=voltrayke
 Icon=audio-volume-medium
 Categories=Qt;KDE;AudioVideo;Audio;

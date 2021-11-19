@@ -79,13 +79,18 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE "src")
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${LIBRARIES})
 
 if (UNIX AND NOT APPLE)
+    string(TOLOWER ${CMAKE_PROJECT_NAME} APP_NAME)
+    set(APPSTREAM_BASENAME "org.azdrums.${APP_NAME}")
+    set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES
+        OUTPUT_NAME "${APP_NAME}"
+    )
     include (GNUInstallDirs)
     install (TARGETS ${CMAKE_PROJECT_NAME}
         DESTINATION ${CMAKE_INSTALL_BINDIR})
-    install (FILES resources/linux/${CMAKE_PROJECT_NAME}.appdata.xml
+    install (FILES resources/linux/${APPSTREAM_BASENAME}.appdata.xml
         DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
-    install (FILES resources/linux/${CMAKE_PROJECT_NAME}.desktop
+    install (FILES resources/linux/${APPSTREAM_BASENAME}.desktop
         DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 #   install (FILES ${QM_FILES}
-#       DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${CMAKE_PROJECT_NAME}/translations)
+#       DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${APP_NAME}/translations)
 endif()
