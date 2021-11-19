@@ -80,10 +80,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${LIBRARIES})
 
 if (UNIX AND NOT APPLE)
     include (GNUInstallDirs)
-    install (TARGETS ${PROJECT_NAME}
+    install (TARGETS ${CMAKE_PROJECT_NAME}
         DESTINATION ${CMAKE_INSTALL_BINDIR})
-    install (FILES resources/icons/${CMAKE_PROJECT_NAME}.svg
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps)
     install (FILES resources/linux/${CMAKE_PROJECT_NAME}.appdata.xml
         DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
     install (FILES resources/linux/${CMAKE_PROJECT_NAME}.desktop
