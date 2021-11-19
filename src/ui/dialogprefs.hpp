@@ -39,8 +39,9 @@ public:
     void setDeviceList(const QStringList&);
 
 signals:
-    void sigAudioEngineChanged(int);
-    void sigAudioDeviceChanged(int);
+    void sigPrefsChanged();
+    void sigEngineChanged(int);
+    void sigChannelChanged(int);
 
 private:
     void closeEvent(QCloseEvent*) override;

@@ -34,45 +34,45 @@
 
 #include <cmath>
 
-AlsaEngine *AlsaEngine::m_instance = nullptr;
+AlsaEngine* AlsaEngine::m_instance = nullptr;
 
-static int alsa_elem_event_callback(snd_mixer_elem_t *elem, unsigned int /*mask*/)
+static int alsa_elem_event_callback(snd_mixer_elem_t* elem, unsigned int /*mask*/)
 {
-    AlsaEngine *engine = AlsaEngine::instance();
+    AlsaEngine* engine = AlsaEngine::instance();
     if (engine)
         engine->updateDevice(engine->getDeviceByAlsaElem(elem));
 
     return 0;
 }
 
-static int alsa_mixer_event_callback(snd_mixer_t * /*mixer*/, unsigned int /*mask*/, snd_mixer_elem_t * /*elem*/)
+static int alsa_mixer_event_callback(snd_mixer_t* /*mixer*/, unsigned int /*mask*/, snd_mixer_elem_t* /*elem*/)
 {
     return 0;
 }
 
-AlsaEngine::AlsaEngine(QObject *parent) :
-    AudioEngine(parent)
+AlsaEngine::AlsaEngine(QObject* parent)
+    : AudioEngine(parent)
 {
     discoverDevices();
     m_instance = this;
 }
 
-AlsaEngine *AlsaEngine::instance()
+AlsaEngine* AlsaEngine::instance()
 {
     return m_instance;
 }
 
-int AlsaEngine::volumeMax(AudioDevice *device) const
+int AlsaEngine::volumeMax(AudioDevice* device) const
 {
-    AlsaDevice * alsa_dev = qobject_cast<AlsaDevice *>(device);
+    AlsaDevice* alsa_dev = qobject_cast<AlsaDevice*>(device);
     Q_ASSERT(alsa_dev);
     return alsa_dev->volumeMax();
 }
 
-AlsaDevice *AlsaEngine::getDeviceByAlsaElem(snd_mixer_elem_t *elem) const
+AlsaDevice* AlsaEngine::getDeviceByAlsaElem(snd_mixer_elem_t* elem) const
 {
-    for (AudioDevice *device : qAsConst(m_sinks)) {
-        AlsaDevice *dev = qobject_cast<AlsaDevice*>(device);
+    for (AudioDevice* device : qAsConst(m_sinks)) {
+        AlsaDevice* dev = qobject_cast<AlsaDevice*>(device);
         if (!dev || !dev->element())
             continue;
 
@@ -83,43 +83,40 @@ AlsaDevice *AlsaEngine::getDeviceByAlsaElem(snd_mixer_elem_t *elem) const
     return nullptr;
 }
 
-static long
-lrint_dir(double x, int dir)
+void AlsaEngine::commitDeviceVolume(AudioDevice* device)
 {
-    if (dir > 0)
-        return lrint(ceil(x));
-    else if (dir < 0)
-        return lrint(floor(x));
-    else
-        return lrint(x);
-}
+    AlsaDevice* dev = qobject_cast<AlsaDevice*>(device);
+    snd_mixer_elem_t* elem = dev->element();
 
-void AlsaEngine::commitDeviceVolume(AudioDevice *device)
-{
-    AlsaDevice *dev = qobject_cast<AlsaDevice*>(device);
-    if (!dev || !dev->element())
+    if (!dev || !elem)
         return;
 
+    // See https://github.com/alsa-project/alsa-utils/blob/master/alsamixer/volume_mapping.c#L120
+    double volume = static_cast<double>(dev->volume()) / 100.0;
+    long min, max, val;
 
+    if (m_isNormalized) {
+        snd_mixer_selem_get_playback_dB_range(elem, &min, &max);
 
-    long v = lrint(static_cast<double>(dev->volume()) / 100.0
-        * (dev->volumeMax() - dev->volumeMin())) + dev->volumeMin();
-
-    long t = lrint(6000.0 * log10(static_cast<double>(dev->volume() / 100.0))) + dev->volumeMax();
-
-    long value = dev->volumeMin() +
-        qRound(static_cast<double>(dev->volume()) / 100.0 * (dev->volumeMax() - dev->volumeMin()));
-
-    qDebug() << "test:   " << v << '\n';
-    qDebug() << "linear: " << t << '\n';
-    qDebug() << "value:  " << value << '\n';
-
-    snd_mixer_selem_set_playback_volume_all(dev->element(), value);
+        if (min != SND_CTL_TLV_DB_GAIN_MUTE) {
+            double minNorm = pow(10, (min - max) / 6000.0);
+            volume = volume * (1 - minNorm) + minNorm;
+        }
+        val = lrint(6000.0 * log10(volume)) + max;
+        snd_mixer_selem_set_playback_dB_all(elem, val, 0);
+    } else {
+        min = dev->volumeMin();
+        max = dev->volumeMax();
+        val = lrint(volume * (max - min)) + min;
+        snd_mixer_selem_set_playback_volume_all(elem, val);
+    }
+    qDebug() << "value: " << val;
+    qDebug() << "volume: " << volume;
 }
 
-void AlsaEngine::setMute(AudioDevice *device, bool state)
+void AlsaEngine::setMute(AudioDevice* device, bool state)
 {
-    AlsaDevice *dev = qobject_cast<AlsaDevice*>(device);
+    AlsaDevice* dev = qobject_cast<AlsaDevice*>(device);
     if (!dev || !dev->element())
         return;
 
@@ -129,19 +126,43 @@ void AlsaEngine::setMute(AudioDevice *device, bool state)
         dev->setVolume(0);
 }
 
-void AlsaEngine::updateDevice(AlsaDevice *device)
+void AlsaEngine::updateDevice(AlsaDevice* device)
 {
     if (!device)
         return;
 
-    long value;
-    snd_mixer_selem_get_playback_volume(device->element(), (snd_mixer_selem_channel_id_t)0, &value);
-    // qDebug() << "updateDevice:" << device->name() << value;
-    device->setVolumeNoCommit(qRound((static_cast<double>(value - device->volumeMin()) * 100.0) / (device->volumeMax() - device->volumeMin())));
+    // See https://github.com/alsa-project/alsa-utils/blob/master/alsamixer/volume_mapping.c#L83
+    snd_mixer_selem_channel_id_t channel = static_cast<snd_mixer_selem_channel_id_t>(0);
+    snd_mixer_elem_t* elem = device->element();
+    long min, max, value;
+    double volume;
 
-    if (snd_mixer_selem_has_playback_switch(device->element())) {
+    if (m_isNormalized) {
+        snd_mixer_selem_get_playback_dB(elem, channel, &value);
+        snd_mixer_selem_get_playback_dB_range(elem, &min, &max);
+        volume = pow(10, (value - max) / 6000.0) * 100.0;
+
+        if (min != SND_CTL_TLV_DB_GAIN_MUTE) {
+            double minNorm = pow(10, (min - max) / 6000.0);
+            volume = (volume - minNorm) / (1 - minNorm);
+        }
+        device->setVolumeNoCommit(volume);
+    } else {
+        min = device->volumeMin();
+        max = device->volumeMax();
+
+        snd_mixer_selem_get_playback_volume(elem, channel, &value);
+        volume = lrint((static_cast<double>(value - min) * 100.0) / (max - min));
+        device->setVolumeNoCommit(volume);
+    }
+    qDebug() << "value:" << value;
+    qDebug() << "volume:" << volume;
+#if 0
+    qDebug() << "updateDevice:" << device->name() << value;
+#endif
+    if (snd_mixer_selem_has_playback_switch(elem)) {
         int mute;
-        snd_mixer_selem_get_playback_switch(device->element(), (snd_mixer_selem_channel_id_t)0, &mute);
+        snd_mixer_selem_get_playback_switch(elem, channel, &mute);
         device->setMuteNoCommit(!(bool)mute);
     }
 }
@@ -173,13 +194,13 @@ void AlsaEngine::discoverDevices()
             continue;
         }
 
-        snd_ctl_t *cardHandle;
+        snd_ctl_t* cardHandle;
         if ((error = snd_ctl_open(&cardHandle, str, 0)) < 0) {
             qWarning("Can't open card %i: %s\n", cardNum, snd_strerror(error));
             continue;
         }
 
-        snd_ctl_card_info_t *cardInfo;
+        snd_ctl_card_info_t* cardInfo;
         snd_ctl_card_info_alloca(&cardInfo);
 
         QString cardName = QString::fromLatin1(snd_ctl_card_info_get_name(cardInfo));
@@ -190,7 +211,7 @@ void AlsaEngine::discoverDevices()
             qWarning("Can't get info for card %i: %s\n", cardNum, snd_strerror(error));
         } else {
             // setup mixer and iterate over channels
-            snd_mixer_t *mixer = nullptr;
+            snd_mixer_t* mixer = nullptr;
             snd_mixer_open(&mixer, 0);
             snd_mixer_attach(mixer, str);
             snd_mixer_selem_register(mixer, nullptr, nullptr);
@@ -202,18 +223,18 @@ void AlsaEngine::discoverDevices()
             // setup eventloop handling
             struct pollfd pfd;
             if (snd_mixer_poll_descriptors(mixer, &pfd, 1)) {
-                QSocketNotifier *notifier = new QSocketNotifier(pfd.fd, QSocketNotifier::Read, this);
-                connect(notifier, &QSocketNotifier::activated, this, [this] (QSocketDescriptor socket, QSocketNotifier::Type) { this->driveAlsaEventHandling(socket); });
+                QSocketNotifier* notifier = new QSocketNotifier(pfd.fd, QSocketNotifier::Read, this);
+                connect(notifier, &QSocketNotifier::activated, this, [this](QSocketDescriptor socket, QSocketNotifier::Type) { this->driveAlsaEventHandling(socket); });
                 m_mixerMap.insert(pfd.fd, mixer);
             }
 
-            snd_mixer_elem_t *mixerElem = nullptr;
+            snd_mixer_elem_t* mixerElem = nullptr;
             mixerElem = snd_mixer_first_elem(mixer);
 
             while (mixerElem) {
                 // check if we have a Sink or Source
                 if (snd_mixer_selem_has_playback_volume(mixerElem)) {
-                    AlsaDevice *dev = new AlsaDevice(Sink, this, this);
+                    AlsaDevice* dev = new AlsaDevice(Sink, this, this);
                     dev->setName(QString::fromLatin1(snd_mixer_selem_get_name(mixerElem)));
                     dev->setIndex(cardNum);
                     dev->setDescription(cardName + QStringLiteral(" - ") + dev->name());
@@ -244,4 +265,9 @@ void AlsaEngine::discoverDevices()
     }
 
     snd_config_update_free_global();
+}
+
+void AlsaEngine::setNormalized(bool normalized)
+{
+    m_isNormalized = normalized;
 }

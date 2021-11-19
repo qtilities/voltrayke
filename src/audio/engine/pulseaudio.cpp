@@ -423,3 +423,8 @@ void PulseAudioEngine::setIgnoreMaxVolume(bool ignore)
     else
         m_maximumVolume = pa_sw_volume_from_dB(0);
 }
+
+void PulseAudioEngine::setNormalized(bool)
+{
+    // TODO: Not implemented, can this be used in PA?
+}

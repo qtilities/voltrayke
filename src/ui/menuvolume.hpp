@@ -37,6 +37,8 @@ public:
     void popUp();
     void setMute(bool);
     void setVolume(int);
+    void setPageStep(double); // TODO: See how to manage double units in slider
+    void setSingleStep(double);
 
 signals:
     void sigRunMixer();

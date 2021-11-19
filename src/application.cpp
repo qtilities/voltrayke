@@ -25,6 +25,7 @@
 
 #include "audio/device.hpp"
 #ifdef USE_ALSA
+#include "audio/device/alsa.hpp"
 #include "audio/engine/alsa.hpp"
 #endif
 #ifdef USE_PULSEAUDIO
@@ -140,11 +141,24 @@ azd::VolTrayke::VolTrayke(int& argc, char* argv[])
     connect(this, &QApplication::aboutToQuit, trayIcon_, &QObject::deleteLater);
     connect(this, &QApplication::aboutToQuit, this, &VolTrayke::onAboutToQuit);
 
-    connect(dlgPrefs_, &DialogPrefs::sigAudioEngineChanged,
+    connect(dlgPrefs_, &DialogPrefs::sigEngineChanged,
             this, &VolTrayke::onAudioEngineChanged);
 
-    connect(dlgPrefs_, &DialogPrefs::sigAudioDeviceChanged,
+    connect(dlgPrefs_, &DialogPrefs::sigChannelChanged,
             this, &VolTrayke::onAudioDeviceChanged);
+
+    connect(dlgPrefs_, &DialogPrefs::sigPrefsChanged,
+            this, [=] {
+#ifdef USE_ALSA
+                engine_->setNormalized(settings_.isNormalized());
+                AlsaEngine* alsa = qobject_cast<AlsaEngine*>(engine_);
+                AlsaDevice* dev = qobject_cast<AlsaDevice*>(channel_);
+                if (alsa && dev)
+                    alsa->updateDevice(dev);
+#endif
+                mnuVolume_->setPageStep(settings_.pageStep());
+                mnuVolume_->setSingleStep(settings_.singleStep());
+            });
 
     connect(mnuVolume_, &MenuVolume::sigRunMixer, this, &VolTrayke::runMixer);
     connect(mnuVolume_, &MenuVolume::sigMuteToggled, this, [=](bool muted) {
@@ -197,7 +211,10 @@ void azd::VolTrayke::onAudioEngineChanged(int engineId)
         engine_ = nullptr;
         return;
     }
+#if 0
     engine_->setIgnoreMaxVolume(settings_.ignoreMaxVolume());
+#endif
+    engine_->setNormalized(settings_.isNormalized());
 
     connect(engine_, &AudioEngine::sinkListChanged,
             this, &VolTrayke::onAudioDeviceListChanged);

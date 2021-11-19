@@ -46,6 +46,8 @@ public:
     virtual int volumeMax(AudioDevice* device) const = 0;
     virtual int volumeBounded(int volume, AudioDevice* device) const;
     virtual int id() const = 0;
+    virtual bool isNormalized() const;
+    virtual void setNormalized(bool) = 0;
 
 public slots:
     virtual void commitDeviceVolume(AudioDevice* device) = 0;
@@ -59,4 +61,5 @@ signals:
 
 protected:
     QList<AudioDevice*> m_sinks;
+    bool m_isNormalized;
 };

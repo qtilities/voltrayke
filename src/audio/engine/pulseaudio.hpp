@@ -50,7 +50,7 @@ public:
     PulseAudioEngine(QObject* parent = nullptr);
     ~PulseAudioEngine();
 
-    virtual int id() const { return EngineId::PulseAudio; }
+    int id() const { return EngineId::PulseAudio; }
 
     int volumeMax(AudioDevice* /*device*/) const { return m_maximumVolume; }
 
@@ -61,6 +61,8 @@ public:
     pa_context_state_t contextState() const { return m_contextState; }
     bool ready() const { return m_ready; }
     pa_threaded_mainloop* mainloop() const { return m_mainLoop; }
+
+    void setNormalized(bool);
 
 public slots:
     void commitDeviceVolume(AudioDevice* device);

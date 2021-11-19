@@ -48,16 +48,12 @@ azd::DialogPrefs::DialogPrefs(QWidget* parent)
     ui->tbwPrefs->removeTab(2); // Notifications
     ui->chkIgnoreMax->setVisible(false);
     ui->chkShowOnClick->setVisible(false);
-
-    // TODO: PNMixer use double values
-    ui->lblStep->setVisible(false);
-    ui->sbxStep->setVisible(false);
 #endif
     connect(ui->cbxEngine, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, [=](int id) {
                 ui->chkIgnoreMax->setEnabled(id == EngineId::PulseAudio);
+                ui->chkNormalize->setEnabled(id == EngineId::Alsa);
             });
-
     connect(ui->buttonBox->button(QDialogButtonBox::Ok), &QPushButton::clicked,
             this, &DialogPrefs::onPrefsChanged);
 
@@ -80,25 +76,33 @@ void azd::DialogPrefs::closeEvent(QCloseEvent* event)
 void azd::DialogPrefs::loadSettings()
 {
     Settings& settings = static_cast<VolTrayke*>(qApp)->settings();
-    ui->cbxChannel->setCurrentIndex(settings.channelId());
     ui->cbxEngine->setCurrentIndex(settings.engineId());
-    ui->chkIgnoreMax->setChecked(settings.ignoreMaxVolume());
+    ui->cbxChannel->setCurrentIndex(settings.channelId());
+    ui->chkNormalize->setChecked(settings.isNormalized());
     ui->chkMuteOnMiddleClick->setChecked(settings.muteOnMiddleClick());
-    ui->chkShowOnClick->setChecked(settings.showOnLeftClick());
     ui->sbxPageStep->setValue(settings.pageStep());
+    ui->sbxStep->setValue(settings.singleStep());
     ui->txtMixerCmd->setText(settings.mixerCommand());
+#if 0
+    ui->chkIgnoreMax->setChecked(settings.ignoreMaxVolume());
+    ui->chkShowOnClick->setChecked(settings.showOnLeftClick());
+#endif
 }
 
 void azd::DialogPrefs::saveSettings()
 {
     Settings& settings = static_cast<VolTrayke*>(qApp)->settings();
-    settings.setChannelId(ui->cbxChannel->currentIndex());
     settings.setEngineId(ui->cbxEngine->currentIndex());
-    settings.setIgnoreMaxVolume(ui->chkIgnoreMax->isChecked());
+    settings.setChannelId(ui->cbxChannel->currentIndex());
+    settings.setNormalized(ui->chkNormalize->isChecked());
     settings.setMuteOnMiddleClick(ui->chkMuteOnMiddleClick->isChecked());
-    settings.setShowOnLeftClick(ui->chkShowOnClick->isChecked());
     settings.setPageStep(ui->sbxPageStep->value());
+    settings.setSingleStep(ui->sbxStep->value());
     settings.setMixerCommand(ui->txtMixerCmd->text());
+#if 0
+    settings.setIgnoreMaxVolume(ui->chkIgnoreMax->isChecked());
+    settings.setShowOnLeftClick(ui->chkShowOnClick->isChecked());
+#endif
 }
 
 void azd::DialogPrefs::setDeviceList(const QStringList& list)
@@ -110,22 +114,20 @@ void azd::DialogPrefs::setDeviceList(const QStringList& list)
 void azd::DialogPrefs::onPrefsChanged()
 {
     Settings& settings = static_cast<VolTrayke*>(qApp)->settings();
-    int engineIndex = ui->cbxEngine->currentIndex();
-    int channelIndex = ui->cbxChannel->currentIndex();
+    int previousBackendId = settings.engineId();
+    int previousChannelId = settings.channelId();
 
-    if (settings.engineId() != engineIndex) {
-        settings.setEngineId(engineIndex);
-        emit sigAudioEngineChanged(engineIndex);
-    }
-    if (settings.channelId() != channelIndex) {
-        settings.setChannelId(channelIndex);
-        emit sigAudioDeviceChanged(channelIndex);
-    }
-    settings.setIgnoreMaxVolume(ui->chkIgnoreMax->isChecked());
-    settings.setMixerCommand(ui->txtMixerCmd->text());
-    settings.setMuteOnMiddleClick(ui->chkMuteOnMiddleClick->isChecked());
-    settings.setPageStep(ui->sbxPageStep->value());
-    settings.setShowOnLeftClick(ui->chkShowOnClick->isChecked());
+    saveSettings();
+    emit sigPrefsChanged();
+
+    int currentBackendId = settings.engineId();
+    int currentChannelId = settings.channelId();
+
+    if (currentBackendId != previousBackendId)
+        emit sigEngineChanged(currentBackendId);
+
+    if (currentChannelId != previousChannelId)
+        emit sigChannelChanged(currentChannelId);
 
     hide();
 }

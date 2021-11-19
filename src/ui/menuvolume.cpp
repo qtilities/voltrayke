@@ -69,6 +69,7 @@ azd::MenuVolume::MenuVolume(QWidget* parent)
     layout->addWidget(lblVolume_);
     layout->addWidget(sldVolume_);
     layout->setAlignment(sldVolume_, Qt::AlignHCenter);
+    layout->addSpacing(6);
 
     container->setLayout(layout);
     actContainer->setDefaultWidget(container);
@@ -121,4 +122,14 @@ void azd::MenuVolume::setVolume(int volume)
     sldVolume_->setValue(volume);
     lblVolume_->setText(QString::number(volume));
     sldVolume_->blockSignals(false);
+}
+
+void azd::MenuVolume::setPageStep(double step)
+{
+    sldVolume_->setPageStep(step);
+}
+
+void azd::MenuVolume::setSingleStep(double step)
+{
+    sldVolume_->setSingleStep(step);
 }

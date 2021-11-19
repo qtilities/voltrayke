@@ -46,10 +46,12 @@ public:
     AlsaEngine(QObject* parent = nullptr);
     static AlsaEngine* instance();
 
-    virtual int id() const { return EngineId::Alsa; }
+    int id() const { return EngineId::Alsa; }
 
     int volumeMax(AudioDevice* device) const;
     AlsaDevice* getDeviceByAlsaElem(snd_mixer_elem_t* elem) const;
+
+    void setNormalized(bool);
 
 public slots:
     void commitDeviceVolume(AudioDevice* device);

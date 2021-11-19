@@ -33,6 +33,7 @@
 
 AudioEngine::AudioEngine(QObject* parent)
     : QObject(parent)
+    , m_isNormalized(false)
 {
 }
 
@@ -63,4 +64,9 @@ void AudioEngine::unmute(AudioDevice* device)
 void AudioEngine::setIgnoreMaxVolume(bool ignore)
 {
     Q_UNUSED(ignore)
+}
+
+bool AudioEngine::isNormalized() const
+{
+    return m_isNormalized;
 }
