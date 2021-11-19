@@ -34,6 +34,9 @@ azd::DialogAbout::DialogAbout(QWidget* parent)
 {
     ui->setupUi(this);
 
+    QPixmap pixmap = QIcon::fromTheme("audio-volume-medium").pixmap(48, 48);
+    ui->lblIcon->setPixmap(pixmap);
+
     QFile f(":/about.html");
     f.open(QFile::ReadOnly | QFile::Text);
 
@@ -42,6 +45,8 @@ azd::DialogAbout::DialogAbout(QWidget* parent)
     f.close();
 
     ui->txtAbout->setHtml(text);
+
+    setStyleSheet("QTextBrowser { background-color: transparent }");
 
     connect(ui->buttonBox->button(QDialogButtonBox::Ok), &QPushButton::clicked,
             this, &QDialog::hide);
