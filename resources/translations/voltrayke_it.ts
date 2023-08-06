@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1">
+<TS version="2.1" language="it">
 <context>
     <name>Qtilities::Application</name>
     <message>
         <location filename="../../src/application.cpp" line="49"/>
         <source>Auto&amp;start</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Avvio automatico</translation>
     </message>
     <message>
         <location filename="../../src/application.cpp" line="79"/>
         <source>&amp;About</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Informazioni</translation>
     </message>
     <message>
         <location filename="../../src/application.cpp" line="80"/>
         <source>&amp;Preferences</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Preferenze</translation>
     </message>
     <message>
         <location filename="../../src/application.cpp" line="81"/>
         <source>&amp;Quit</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Esci</translation>
     </message>
 </context>
 <context>
@@ -29,42 +29,42 @@
     <message>
         <location filename="../../src/dialogabout.ui" line="27"/>
         <source>Information</source>
-        <translation type="unfinished"></translation>
+        <translation>Informazioni</translation>
     </message>
     <message>
         <location filename="../../src/dialogabout.ui" line="62"/>
         <source>qrc:/about.html</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../src/dialogabout.ui" line="81"/>
         <source>Thanks</source>
-        <translation type="unfinished"></translation>
+        <translation>Ringraziamenti</translation>
     </message>
     <message>
         <location filename="../../src/dialogabout.ui" line="119"/>
         <source>qrc:/thanks.html</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../src/dialogabout.ui" line="138"/>
         <source>License</source>
-        <translation type="unfinished"></translation>
+        <translation>Licenza</translation>
     </message>
     <message>
         <location filename="../../src/dialogabout.ui" line="176"/>
         <source>qrc:/license.html</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../src/dialogabout.cpp" line="55"/>
         <source>Author</source>
-        <translation type="unfinished"></translation>
+        <translation>Autore</translation>
     </message>
     <message>
         <location filename="../../src/dialogabout.cpp" line="60"/>
         <source>About</source>
-        <translation type="unfinished"></translation>
+        <translation>Informazioni</translation>
     </message>
 </context>
 <context>
@@ -72,92 +72,92 @@
     <message>
         <location filename="../../src/dialogprefs.ui" line="20"/>
         <source>Preferences</source>
-        <translation type="unfinished"></translation>
+        <translation>Preferenze</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="49"/>
         <source>Device</source>
-        <translation type="unfinished"></translation>
+        <translation>Dispositivo</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="67"/>
         <source>Audio device</source>
-        <translation type="unfinished"></translation>
+        <translation>Dispositivo audio</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="73"/>
         <source>Backend:</source>
-        <translation type="unfinished"></translation>
+        <translation>Backend:</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="83"/>
         <source>Channel:</source>
-        <translation type="unfinished"></translation>
+        <translation>Canale:</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="93"/>
         <source>Normalize volume</source>
-        <translation type="unfinished"></translation>
+        <translation>Normalizza volume</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="100"/>
         <source>Allow volume beyond 100% (0dB)</source>
-        <translation type="unfinished"></translation>
+        <translation>Permetti volume oltre il 100% (0dB)</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="111"/>
         <source>Behaviour</source>
-        <translation type="unfinished"></translation>
+        <translation>Comportamento</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="138"/>
         <source>External mixer command</source>
-        <translation type="unfinished"></translation>
+        <translation>Comando mixer esterno</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="168"/>
         <source>Volume scrolling</source>
-        <translation type="unfinished"></translation>
+        <translation>Scorrimento volume</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="198"/>
         <source>Scroll step:</source>
-        <translation type="unfinished"></translation>
+        <translation>Passo singolo:</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="211"/>
         <source>Page step:</source>
-        <translation type="unfinished"></translation>
+        <translation>Passo largo:</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="241"/>
         <source>Mouse</source>
-        <translation type="unfinished"></translation>
+        <translation>Mouse</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="247"/>
         <source>Show on mouse click</source>
-        <translation type="unfinished"></translation>
+        <translation>Visualizza con click</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="254"/>
         <source>Mute on middle click</source>
-        <translation type="unfinished"></translation>
+        <translation>Muto con click centrale</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="278"/>
         <source>Notifications</source>
-        <translation type="unfinished"></translation>
+        <translation>Notifiche</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="284"/>
         <source>Always notify about volume changes</source>
-        <translation type="unfinished"></translation>
+        <translation>Notifica sempre cambio volume</translation>
     </message>
     <message>
         <location filename="../../src/dialogprefs.ui" line="291"/>
         <source>Notify about volume changes with keyboard</source>
-        <translation type="unfinished"></translation>
+        <translation>Notifica cambio volume tramite tastiera</translation>
     </message>
 </context>
 <context>
@@ -165,12 +165,12 @@
     <message>
         <location filename="../../src/menuvolume.cpp" line="38"/>
         <source>Mute</source>
-        <translation type="unfinished"></translation>
+        <translation>Muto</translation>
     </message>
     <message>
         <location filename="../../src/menuvolume.cpp" line="54"/>
         <source>Mixer</source>
-        <translation type="unfinished"></translation>
+        <translation>Mixer</translation>
     </message>
 </context>
 </TS>
