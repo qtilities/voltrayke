@@ -43,6 +43,8 @@ jobs:
     - name: Install Dependencies
       run: |
         packages=(
+          libasound2-dev
+          libpulse-dev
           qtbase5-dev
           qttools5-dev
         )
