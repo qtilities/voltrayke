@@ -21,7 +21,7 @@
 
 #include <QString>
 
-namespace azd {
+namespace Qtilities {
 
 class Settings {
 public:

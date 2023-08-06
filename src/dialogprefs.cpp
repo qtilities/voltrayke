@@ -28,16 +28,16 @@
 
 #include <QDebug>
 
-azd::DialogPrefs::DialogPrefs(QWidget* parent)
+Qtilities::DialogPrefs::DialogPrefs(QWidget* parent)
     : QDialog(parent)
-    , ui(new Ui::DialogPrefs)
+    , ui(new Qtilities::Ui::DialogPrefs)
 {
     ui->setupUi(this);
 
-#ifdef USE_ALSA
+#if USE_ALSA
     ui->cbxEngine->addItem("ALSA");
 #endif
-#ifdef USE_PULSEAUDIO
+#if USE_PULSEAUDIO
     ui->cbxEngine->addItem("PulseAudio");
 #endif
     // TODO: LXQt volume plugin has these features that I don't use,
@@ -61,21 +61,21 @@ azd::DialogPrefs::DialogPrefs(QWidget* parent)
             this, &QDialog::hide);
 }
 
-azd::DialogPrefs::~DialogPrefs()
+Qtilities::DialogPrefs::~DialogPrefs()
 {
     delete ui;
-    qDebug() << "Destroyed DialogPrefs" << Qt::endl;
+    qDebug() << "Destroyed DialogPrefs";
 }
 
-void azd::DialogPrefs::closeEvent(QCloseEvent* event)
+void Qtilities::DialogPrefs::closeEvent(QCloseEvent* event)
 {
     hide();
     event->ignore();
 }
 
-void azd::DialogPrefs::loadSettings()
+void Qtilities::DialogPrefs::loadSettings()
 {
-    Settings& settings = static_cast<VolTrayke*>(qApp)->settings();
+    Settings& settings = static_cast<Application*>(qApp)->settings();
     ui->cbxEngine->setCurrentIndex(settings.engineId());
     ui->cbxChannel->setCurrentIndex(settings.channelId());
     ui->chkNormalize->setChecked(settings.isNormalized());
@@ -89,9 +89,9 @@ void azd::DialogPrefs::loadSettings()
 #endif
 }
 
-void azd::DialogPrefs::saveSettings()
+void Qtilities::DialogPrefs::saveSettings()
 {
-    Settings& settings = static_cast<VolTrayke*>(qApp)->settings();
+    Settings& settings = static_cast<Application*>(qApp)->settings();
     settings.setEngineId(ui->cbxEngine->currentIndex());
     settings.setChannelId(ui->cbxChannel->currentIndex());
     settings.setNormalized(ui->chkNormalize->isChecked());
@@ -105,15 +105,15 @@ void azd::DialogPrefs::saveSettings()
 #endif
 }
 
-void azd::DialogPrefs::setDeviceList(const QStringList& list)
+void Qtilities::DialogPrefs::setDeviceList(const QStringList& list)
 {
     ui->cbxChannel->clear();
     ui->cbxChannel->addItems(list);
 }
 
-void azd::DialogPrefs::onPrefsChanged()
+void Qtilities::DialogPrefs::onPrefsChanged()
 {
-    Settings& settings = static_cast<VolTrayke*>(qApp)->settings();
+    Settings& settings = static_cast<Application*>(qApp)->settings();
     int previousBackendId = settings.engineId();
     int previousChannelId = settings.channelId();
 

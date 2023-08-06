@@ -25,7 +25,7 @@ class QCheckBox;
 class QLabel;
 class QSlider;
 
-namespace azd {
+namespace Qtilities {
 
 class MenuVolume : public QMenu {
     Q_OBJECT
@@ -50,4 +50,4 @@ private:
     QLabel* lblVolume_;
     QSlider* sldVolume_;
 };
-} // namespace azd
+} // namespace Qtilities

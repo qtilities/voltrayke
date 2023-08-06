@@ -21,12 +21,12 @@
 
 #include <QDialog>
 
+
+namespace Qtilities {
+
 namespace Ui {
 class DialogPrefs;
 }
-
-namespace azd {
-
 class DialogPrefs : public QDialog {
     Q_OBJECT
 
@@ -49,6 +49,6 @@ private:
     void onAudioEngineChanged(int);
     void onPrefsChanged();
 
-    Ui::DialogPrefs* ui;
+    Qtilities::Ui::DialogPrefs *ui;
 };
-} // namespace azd
+} // namespace Qtilities

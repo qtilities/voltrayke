@@ -18,7 +18,7 @@
     SPDX-License-Identifier: GPL-2.0-only
 */
 #include "menuvolume.hpp"
-#include "utils.hpp"
+#include "qtilities.hpp"
 
 #include <QAction>
 #include <QApplication>
@@ -33,7 +33,7 @@
 #include <QWidgetAction>
 #include <QDebug>
 
-azd::MenuVolume::MenuVolume(QWidget* parent)
+Qtilities::MenuVolume::MenuVolume(QWidget* parent)
     : QMenu(parent)
     , chkMute_(new QCheckBox(tr("Mute"), this))
     , lblVolume_(new QLabel("0", this))
@@ -83,12 +83,12 @@ azd::MenuVolume::MenuVolume(QWidget* parent)
     });
 }
 
-azd::MenuVolume::~MenuVolume()
+Qtilities::MenuVolume::~MenuVolume()
 {
-    qDebug() << "Destroyed MenuVolume" << Qt::endl;
+    qDebug() << "Destroyed MenuVolume";
 }
 
-void azd::MenuVolume::popUp()
+void Qtilities::MenuVolume::popUp()
 {
     // TODO: move on the appropriated corner depending on the panel position
     QRect rect;
@@ -109,14 +109,14 @@ void azd::MenuVolume::popUp()
     popup(rect.topLeft());
 }
 
-void azd::MenuVolume::setMute(bool mute)
+void Qtilities::MenuVolume::setMute(bool mute)
 {
     chkMute_->blockSignals(true);
     chkMute_->setChecked(mute);
     chkMute_->blockSignals(false);
 }
 
-void azd::MenuVolume::setVolume(int volume)
+void Qtilities::MenuVolume::setVolume(int volume)
 {
     sldVolume_->blockSignals(true);
     sldVolume_->setValue(volume);
@@ -124,12 +124,12 @@ void azd::MenuVolume::setVolume(int volume)
     sldVolume_->blockSignals(false);
 }
 
-void azd::MenuVolume::setPageStep(double step)
+void Qtilities::MenuVolume::setPageStep(double step)
 {
     sldVolume_->setPageStep(step);
 }
 
-void azd::MenuVolume::setSingleStep(double step)
+void Qtilities::MenuVolume::setSingleStep(double step)
 {
     sldVolume_->setSingleStep(step);
 }

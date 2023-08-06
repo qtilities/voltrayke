@@ -23,28 +23,33 @@
 
 #include <QApplication>
 #include <QSystemTrayIcon>
+#include <QTranslator>
 
 class AudioDevice;
 class AudioEngine;
 
 class QAction;
 
-namespace azd {
+namespace Qtilities {
 
 class DialogAbout;
 class DialogPrefs;
 class MenuVolume;
 
-class VolTrayke : public QApplication {
+class Application : public QApplication
+{
     Q_OBJECT
 
 public:
-    VolTrayke(int&, char**);
-    ~VolTrayke();
+    Application(int&, char**);
+    ~Application();
 
     Settings& settings() { return settings_; }
 
 private:
+    void initLocale();
+    void initUi();
+
     void runMixer();
     void updateTrayIcon();
 
@@ -54,6 +59,7 @@ private:
     void onAudioDeviceListChanged();
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason);
 
+    QTranslator qtTranslator, translator;
     QAction* actAutoStart_;
     QSystemTrayIcon* trayIcon_;
     DialogAbout* dlgAbout_;

@@ -24,7 +24,7 @@
 #include <QDebug>
 #include <QSettings>
 
-namespace azd {
+namespace Qtilities {
 namespace Default {
     const bool isNormalized = true;
     const bool muteOnMiddleClick = true;
@@ -38,9 +38,9 @@ namespace Default {
     const bool showOnLeftClick = true;
 #endif
 } // namespace Default
-} // namespace azd
+} // namespace Qtilities
 
-azd::Settings::Settings()
+Qtilities::Settings::Settings()
     : engineId_(-1)
     , channelId_(-1)
     , pageStep_(Default::pageStep)
@@ -58,12 +58,12 @@ azd::Settings::Settings()
 {
 }
 
-azd::Settings::~Settings()
+Qtilities::Settings::~Settings()
 {
-    qDebug() << "Destroyed Settings" << Qt::endl;
+    qDebug() << "Destroyed Settings";
 }
 
-void azd::Settings::load()
+void Qtilities::Settings::load()
 {
     QSettings settings(QSettings::IniFormat, QSettings::UserScope,
                        QApplication::organizationName(),
@@ -89,7 +89,7 @@ void azd::Settings::load()
 #endif
 }
 
-void azd::Settings::save()
+void Qtilities::Settings::save()
 {
     QSettings settings(QSettings::IniFormat, QSettings::UserScope,
                        QApplication::organizationName(),

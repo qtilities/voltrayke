@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>DialogPrefs</class>
- <widget class="QDialog" name="DialogPrefs">
+ <class>Qtilities::DialogPrefs</class>
+ <widget class="QDialog" name="Qtilities::DialogPrefs">
   <property name="geometry">
    <rect>
     <x>0</x>
