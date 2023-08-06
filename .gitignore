@@ -1,3 +1,4 @@
-*build*
-*.user*
-*.qm
+build*/
+*.user
+compile_commands.json
+resources/about.md
