@@ -1,6 +1,6 @@
 /*
     VolTrayke - Volume tray widget.
-    Copyright (C) 2021  Andrea Zanellato <redtid3@gmail.com>
+    Copyright (C) 2021-2023 Andrea Zanellato <redtid3@gmail.com>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
     SPDX-License-Identifier: GPL-2.0-only
 */
@@ -23,10 +23,25 @@
 
 namespace Qtilities {
 
+namespace Default {
+    static constexpr bool isMuted = false;
+    static constexpr bool isNormalized = true;
+    static constexpr bool muteOnMiddleClick = true;
+    static constexpr bool useAutostart = false;
+    static constexpr double pageStep = 2.00;
+    static constexpr double singleStep = 1.00;
+    static constexpr int volume = -1;
+#if 0
+    const bool ignoreMaxVolume = false;
+    const bool showAlwaysNotifications = false;
+    const bool showKeyboardNotifications = true;
+    const bool showOnLeftClick = true;
+#endif
+} // namespace Default
+
 class Settings {
 public:
     Settings();
-    ~Settings();
 
     void load();
     void save();
@@ -37,6 +52,9 @@ public:
     int channelId() const { return channelId_; }
     void setChannelId(int id) { channelId_ = id; }
 
+    int volume() const { return volume_; }
+    void setVolume(int volume) { volume_ = volume; }
+
     double pageStep() { return pageStep_; }
     void setPageStep(double step) { pageStep_ = step; }
 
@@ -45,6 +63,9 @@ public:
 
     bool isNormalized() const { return isNormalized_; }
     void setNormalized(bool normalized) { isNormalized_ = normalized; }
+
+    bool isMuted() const { return isMuted_; }
+    void setMuted(bool isMuted) { isMuted_ = isMuted; }
 
     bool muteOnMiddleClick() const { return muteOnMiddleClick_; }
     void setMuteOnMiddleClick(bool mute) { muteOnMiddleClick_ = mute; }
@@ -71,8 +92,10 @@ public:
 private:
     int engineId_;
     int channelId_;
+    int volume_;
     double pageStep_;
     double singleStep_;
+    bool isMuted_;
     bool isNormalized_;
     bool muteOnMiddleClick_;
 #if 0

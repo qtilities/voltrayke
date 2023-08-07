@@ -1,6 +1,6 @@
 /*
     VolTrayke - Volume tray widget.
-    Copyright (C) 2021  Andrea Zanellato <redtid3@gmail.com>
+    Copyright (C) 2021-2023 Andrea Zanellato <redtid3@gmail.com>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,12 +13,14 @@
 
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
     SPDX-License-Identifier: GPL-2.0-only
 */
 #include "menuvolume.hpp"
+#include "application.hpp"
 #include "qtilities.hpp"
+#include "settings.hpp"
 
 #include <QAction>
 #include <QApplication>
@@ -83,9 +85,15 @@ Qtilities::MenuVolume::MenuVolume(QWidget* parent)
     });
 }
 
-Qtilities::MenuVolume::~MenuVolume()
+void Qtilities::MenuVolume::loadSettings()
 {
-    qDebug() << "Destroyed MenuVolume";
+    Settings &settings = static_cast<Application *>(qApp)->settings();
+    sldVolume_->setPageStep(settings.pageStep());
+    sldVolume_->setSingleStep(settings.singleStep());
+
+    int volume = settings.volume();
+    if(volume >= 0 && volume <= 100)
+        sldVolume_->setValue(volume);
 }
 
 void Qtilities::MenuVolume::popUp()
@@ -122,14 +130,4 @@ void Qtilities::MenuVolume::setVolume(int volume)
     sldVolume_->setValue(volume);
     lblVolume_->setText(QString::number(volume));
     sldVolume_->blockSignals(false);
-}
-
-void Qtilities::MenuVolume::setPageStep(double step)
-{
-    sldVolume_->setPageStep(step);
-}
-
-void Qtilities::MenuVolume::setSingleStep(double step)
-{
-    sldVolume_->setSingleStep(step);
 }

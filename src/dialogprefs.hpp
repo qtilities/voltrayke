@@ -1,6 +1,6 @@
 /*
     VolTrayke - Volume tray widget.
-    Copyright (C) 2021  Andrea Zanellato <redtid3@gmail.com>
+    Copyright (C) 2021-2023 Andrea Zanellato <redtid3@gmail.com>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
     SPDX-License-Identifier: GPL-2.0-only
 */
@@ -35,19 +35,11 @@ public:
     ~DialogPrefs();
 
     void loadSettings();
-    void saveSettings();
     void setDeviceList(const QStringList&);
 
-signals:
-    void sigPrefsChanged();
-    void sigEngineChanged(int);
-    void sigChannelChanged(int);
-
 private:
-    void closeEvent(QCloseEvent*) override;
-
-    void onAudioEngineChanged(int);
-    void onPrefsChanged();
+    void accept() override;
+    void setupUi();
 
     Qtilities::Ui::DialogPrefs *ui;
 };

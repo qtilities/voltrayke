@@ -1,6 +1,6 @@
 /*
     VolTrayke - Volume tray widget.
-    Copyright (C) 2021  Andrea Zanellato <redtid3@gmail.com>
+    Copyright (C) 2021-2023 Andrea Zanellato <redtid3@gmail.com>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
     SPDX-License-Identifier: GPL-2.0-only
 */
@@ -32,13 +32,11 @@ class MenuVolume : public QMenu {
 
 public:
     MenuVolume(QWidget* parent = nullptr);
-    ~MenuVolume();
 
+    void loadSettings();
     void popUp();
     void setMute(bool);
     void setVolume(int);
-    void setPageStep(double); // TODO: See how to manage double units in slider
-    void setSingleStep(double);
 
 signals:
     void sigRunMixer();
@@ -46,8 +44,8 @@ signals:
     void sigVolumeChanged(int);
 
 private:
-    QCheckBox* chkMute_;
-    QLabel* lblVolume_;
-    QSlider* sldVolume_;
+    QCheckBox *chkMute_;
+    QLabel *lblVolume_;
+    QSlider *sldVolume_;
 };
 } // namespace Qtilities

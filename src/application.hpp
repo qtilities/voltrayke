@@ -1,6 +1,6 @@
 /*
     VolTrayke - Volume tray widget.
-    Copyright (C) 2021  Andrea Zanellato <redtid3@gmail.com>
+    Copyright (C) 2021-2023 Andrea Zanellato <redtid3@gmail.com>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
     SPDX-License-Identifier: GPL-2.0-only
 */
@@ -22,8 +22,8 @@
 #include "settings.hpp"
 
 #include <QApplication>
-#include <QSystemTrayIcon>
 #include <QTranslator>
+#include <QSystemTrayIcon>
 
 class AudioDevice;
 class AudioEngine;
@@ -32,41 +32,39 @@ class QAction;
 
 namespace Qtilities {
 
-class DialogAbout;
-class DialogPrefs;
 class MenuVolume;
-
 class Application : public QApplication
 {
     Q_OBJECT
 
 public:
-    Application(int&, char**);
-    ~Application();
-
-    Settings& settings() { return settings_; }
+    Application(int argc, char *argv[]);
+    void about();
+    void preferences();
+    Settings &settings() { return settings_; }
 
 private:
     void initLocale();
     void initUi();
 
     void runMixer();
+    void updateDeviceList();
     void updateTrayIcon();
 
     void onAboutToQuit();
-    void onAudioEngineChanged(int);
     void onAudioDeviceChanged(int);
-    void onAudioDeviceListChanged();
+    void onAudioEngineChanged(int);
+    void onPrefsChanged();
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason);
+    void onVolumeChanged(int);
 
-    QTranslator qtTranslator, translator;
-    QAction* actAutoStart_;
-    QSystemTrayIcon* trayIcon_;
-    DialogAbout* dlgAbout_;
-    DialogPrefs* dlgPrefs_;
-    MenuVolume* mnuVolume_;
+    QStringList deviceList_;
+    QTranslator qtTranslator_, translator_;
     Settings settings_;
-    AudioEngine* engine_;
-    AudioDevice* channel_;
+    QSystemTrayIcon *trayIcon_;
+    QAction *actAutoStart_;
+    MenuVolume *mnuVolume_;
+    AudioEngine *engine_;
+    AudioDevice *channel_;
 };
-} // namespace azd
+} // namespace Qtilities

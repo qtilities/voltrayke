@@ -1,6 +1,6 @@
 /*
     VolTrayke - Volume tray widget.
-    Copyright (C) 2021  Andrea Zanellato <redtid3@gmail.com>
+    Copyright (C) 2021-2023 Andrea Zanellato <redtid3@gmail.com>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
     SPDX-License-Identifier: GPL-2.0-only
 */
@@ -33,19 +33,17 @@
 #endif
 
 #include <QAction>
-#include <QCursor>
-#include <QDir>
+#include <QIcon>
 #include <QLibraryInfo>
 #include <QMenu>
 #include <QProcess>
-#include <QScreen>
-#include <QStandardPaths>
-#include <QTextStream>
+#include <QSystemTrayIcon>
 
 #include <QDebug>
 
-Qtilities::Application::Application(int& argc, char* argv[])
+Qtilities::Application::Application(int argc, char* argv[])
     : QApplication(argc, argv)
+    , trayIcon_(new QSystemTrayIcon(this))
     , engine_(nullptr)
     , channel_(nullptr)
 {
@@ -58,53 +56,6 @@ Qtilities::Application::Application(int& argc, char* argv[])
 
     initLocale();
     initUi();
-
-    connect(this, &QApplication::aboutToQuit, mnuVolume_, &QObject::deleteLater);
-    connect(this, &QApplication::aboutToQuit, dlgAbout_, &QObject::deleteLater);
-    connect(this, &QApplication::aboutToQuit, dlgPrefs_, &QObject::deleteLater);
-    connect(this, &QApplication::aboutToQuit, trayIcon_, &QObject::deleteLater);
-    connect(this, &QApplication::aboutToQuit, this, &Application::onAboutToQuit);
-
-    connect(dlgPrefs_, &DialogPrefs::sigEngineChanged,
-            this, &Application::onAudioEngineChanged);
-
-    connect(dlgPrefs_, &DialogPrefs::sigChannelChanged,
-            this, &Application::onAudioDeviceChanged);
-
-    connect(dlgPrefs_, &DialogPrefs::sigPrefsChanged,
-            this, [=] {
-#if USE_ALSA
-                engine_->setNormalized(settings_.isNormalized());
-                AlsaEngine* alsa = qobject_cast<AlsaEngine*>(engine_);
-                AlsaDevice* dev = qobject_cast<AlsaDevice*>(channel_);
-                if (alsa && dev)
-                    alsa->updateDevice(dev);
-#endif
-                mnuVolume_->setPageStep(settings_.pageStep());
-                mnuVolume_->setSingleStep(settings_.singleStep());
-            });
-
-    connect(mnuVolume_, &MenuVolume::sigRunMixer, this, &Application::runMixer);
-    connect(mnuVolume_, &MenuVolume::sigMuteToggled, this, [=](bool muted) {
-        if (!channel_)
-            return;
-
-        channel_->setMute(muted);
-        updateTrayIcon();
-    });
-    connect(mnuVolume_, &MenuVolume::sigVolumeChanged, this, [=](int volume) {
-        if (!channel_)
-            return;
-
-        channel_->setVolume(volume);
-        updateTrayIcon();
-    });
-    connect(trayIcon_, &QSystemTrayIcon::activated, this, &Application::onTrayIconActivated);
-}
-
-Qtilities::Application::~Application()
-{
-    qDebug() << "Destroyed VolTrayke";
 }
 
 void Qtilities::Application::initLocale()
@@ -115,14 +66,14 @@ void Qtilities::Application::initLocale()
     QLocale locale(QLocale("it"));
     QLocale::setDefault(locale);
 #endif
-    // install the translations built-into Qt itself
-    if (qtTranslator.load(QStringLiteral("qt_") + locale.name(),
+    // install the translations built into Qt itself
+    if (qtTranslator_.load(QStringLiteral("qt_") + locale.name(),
 #if QT_VERSION < 0x060000
-                      QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+                           QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
 #else
-                      QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+                           QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
 #endif
-        installTranslator(&qtTranslator);
+        installTranslator(&qtTranslator_);
 
     // E.g. "<appname>_en"
     QString translationsFileName = QCoreApplication::applicationName().toLower() + '_' + locale.name();
@@ -130,46 +81,52 @@ void Qtilities::Application::initLocale()
     // otherwise read from system data
     QString translationsPath = QCoreApplication::applicationDirPath();
 
-    bool isLoaded = translator.load(translationsFileName, translationsPath);
+    bool isLoaded = translator_.load(translationsFileName, translationsPath);
     if (!isLoaded) {
         // "/usr/share/<appname>/translations
-        isLoaded = translator.load(translationsFileName,
+        isLoaded = translator_.load(translationsFileName,
                                     QStringLiteral(PROJECT_DATA_DIR) + QStringLiteral("/translations"));
     }
     if (isLoaded)
-        installTranslator(&translator);
+        installTranslator(&translator_);
 }
 
 void Qtilities::Application::initUi()
 {
-    actAutoStart_ = new QAction(tr("Auto&start"), this);
-    trayIcon_ = new QSystemTrayIcon(QIcon::fromTheme("audio-volume-medium"), this);
-    dlgAbout_ = new DialogAbout;
-    dlgPrefs_ = new DialogPrefs;
-    mnuVolume_ = new MenuVolume;
-
     settings_.load();
-    dlgPrefs_->loadSettings();
-#if 1
+
+    actAutoStart_ = new QAction(tr("Auto&start"), this);
+    mnuVolume_ = new MenuVolume;
+    mnuVolume_->loadSettings();
+    mnuVolume_->show(); // FIXME: crash without this
+    mnuVolume_->hide();
+
     onAudioEngineChanged(settings_.engineId());
     onAudioDeviceChanged(settings_.channelId());
-    onAudioDeviceListChanged();
+    updateDeviceList();
     updateTrayIcon();
 
-    if (channel_)
-        mnuVolume_->setVolume(channel_->volume());
-#endif
-    centerOnScreen(dlgPrefs_);
-    centerOnScreen(dlgAbout_);
+    if(channel_) {
+        channel_->setMute(settings_.isMuted());
 
+        int volume = settings_.volume();
+        if(volume >= 0 && volume <= 100)
+            channel_->setVolume(volume);
+        else
+            mnuVolume_->setVolume(channel_->volume());
+    }
     actAutoStart_->setCheckable(true);
     actAutoStart_->setChecked(settings_.useAutostart());
 
-    QAction* actAbout = new QAction(QIcon::fromTheme("help-about", QIcon(":/help-about")), tr("&About"), this);
-    QAction* actPrefs = new QAction(QIcon::fromTheme("preferences-system", QIcon(":/preferences-system")), tr("&Preferences"), this);
-    QAction* actQuit = new QAction(QIcon::fromTheme("application-exit", QIcon(":/application-exit")), tr("&Quit"), this);
+    QAction *actAbout
+        = new QAction(QIcon::fromTheme("help-about", QIcon(":/help-about")), tr("&About"), this);
+    QAction *actPrefs
+        = new QAction(QIcon::fromTheme("preferences-system", QIcon(":/preferences-system")),
+                      tr("&Preferences"), this);
+    QAction *actQuit = new QAction(QIcon::fromTheme("application-exit", QIcon(":/application-exit")),
+                                   tr("&Quit"), this);
 
-    QMenu* mnuActions = new QMenu();
+    QMenu* mnuActions = new QMenu(mnuVolume_);
     mnuActions->addAction(actAutoStart_);
     mnuActions->addAction(actPrefs);
     mnuActions->addAction(actAbout);
@@ -178,13 +135,62 @@ void Qtilities::Application::initUi()
     trayIcon_->setContextMenu(mnuActions);
     trayIcon_->show();
 
-    connect(actAbout, &QAction::triggered,
-            this, [=] { if (dlgAbout_->isHidden()) dlgAbout_->show(); });
+    connect(actAbout, &QAction::triggered, this, &Application::about);
+    connect(actPrefs, &QAction::triggered, this, &Application::preferences);
+    connect(actQuit, &QAction::triggered, this, &Application::quit);
 
-    connect(actPrefs, &QAction::triggered,
-            this, [=] { if (dlgPrefs_->isHidden()) dlgPrefs_->show(); });
+    connect(this, &QApplication::aboutToQuit, mnuVolume_, &QObject::deleteLater);
+    connect(this, &QApplication::aboutToQuit, trayIcon_, &QObject::deleteLater);
+    connect(this, &QApplication::aboutToQuit, this, &Application::onAboutToQuit);
 
-    connect(actQuit, &QAction::triggered, qApp, &QCoreApplication::quit);
+    connect(mnuVolume_, &MenuVolume::sigRunMixer, this, &Application::runMixer);
+    connect(mnuVolume_, &MenuVolume::sigMuteToggled, this, [this](bool muted) {
+        if (!channel_)
+            return;
+
+        channel_->setMute(muted);
+        updateTrayIcon();
+    });
+    connect(mnuVolume_, &MenuVolume::sigVolumeChanged, this, &Application::onVolumeChanged);
+    connect(trayIcon_, &QSystemTrayIcon::activated, this, &Application::onTrayIconActivated);
+}
+
+void Qtilities::Application::about()
+{
+    DialogAbout dlg(mnuVolume_);
+    centerOnScreen(&dlg);
+    dlg.exec();
+}
+
+void Qtilities::Application::preferences()
+{
+    DialogPrefs prefs(mnuVolume_);
+    prefs.loadSettings();
+    prefs.setDeviceList(deviceList_);
+
+    centerOnScreen(&prefs);
+
+    connect(&prefs, &QDialog::accepted, this, &Application::onPrefsChanged);
+    connect(engine_, &AudioEngine::sinkListChanged, this, [&prefs, this] {
+        updateDeviceList();
+        prefs.setDeviceList(deviceList_);
+    });
+    prefs.exec();
+}
+
+void Qtilities::Application::onPrefsChanged()
+{
+#if USE_ALSA
+    engine_->setNormalized(settings_.isNormalized());
+    AlsaEngine* alsa = qobject_cast<AlsaEngine*>(engine_);
+    AlsaDevice* dev = qobject_cast<AlsaDevice*>(channel_);
+    if (alsa && dev)
+        alsa->updateDevice(dev);
+#endif
+    mnuVolume_->loadSettings();
+
+    onAudioDeviceChanged(settings_.channelId());
+    onAudioEngineChanged(settings_.engineId());
 }
 
 void Qtilities::Application::onAudioEngineChanged(int engineId)
@@ -197,8 +203,6 @@ void Qtilities::Application::onAudioEngineChanged(int engineId)
             disconnect(channel_, nullptr, this, nullptr);
             channel_ = nullptr;
         }
-        disconnect(engine_, &AudioEngine::sinkListChanged,
-                   this, &Application::onAudioDeviceListChanged);
     }
     switch (engineId) {
 #if USE_ALSA
@@ -219,9 +223,6 @@ void Qtilities::Application::onAudioEngineChanged(int engineId)
     engine_->setIgnoreMaxVolume(settings_.ignoreMaxVolume());
 #endif
     engine_->setNormalized(settings_.isNormalized());
-
-    connect(engine_, &AudioEngine::sinkListChanged,
-            this, &Application::onAudioDeviceListChanged);
 }
 
 void Qtilities::Application::onAudioDeviceChanged(int deviceId)
@@ -234,34 +235,28 @@ void Qtilities::Application::onAudioDeviceChanged(int deviceId)
 
     channel_ = engine_->sinks().at(deviceId);
 
-    connect(channel_, &AudioDevice::muteChanged, this, [=](bool muted) {
+    connect(channel_, &AudioDevice::muteChanged, this, [this](bool muted) {
         mnuVolume_->setMute(muted);
+        settings_.setMuted(muted);
         updateTrayIcon();
     });
-    connect(channel_, &AudioDevice::volumeChanged, this, [=](int volume) {
-        mnuVolume_->setVolume(volume);
-        updateTrayIcon();
-    });
+    connect(channel_, &AudioDevice::volumeChanged, this, &Application::onVolumeChanged);
 }
 
-void Qtilities::Application::onAudioDeviceListChanged()
+void Qtilities::Application::onVolumeChanged(int volume)
 {
-    if (engine_) {
-        QStringList list;
-        for (const AudioDevice* dev : engine_->sinks())
-            list.append(dev->description());
+    if (!channel_)
+        return;
 
-        dlgPrefs_->setDeviceList(list);
-    }
+    channel_->setVolume(volume);
+    settings_.setVolume(volume);
+    updateTrayIcon();
 }
 
 void Qtilities::Application::onAboutToQuit()
 {
-    dlgPrefs_->saveSettings();
-
     settings_.setUseAutostart(actAutoStart_->isChecked());
-    settings_.useAutostart() ? createAutostartFile()
-                             : deleteAutostartFile();
+    settings_.useAutostart() ? createAutostartFile() : deleteAutostartFile();
     settings_.save();
 }
 
@@ -271,9 +266,7 @@ void Qtilities::Application::onTrayIconActivated(QSystemTrayIcon::ActivationReas
         mnuVolume_->show();
         mnuVolume_->adjustSize();
         mnuVolume_->popUp();
-    } else if (channel_
-               && settings_.muteOnMiddleClick()
-               && reason == QSystemTrayIcon::MiddleClick) {
+    } else if (channel_ && settings_.muteOnMiddleClick() && reason == QSystemTrayIcon::MiddleClick) {
         channel_->toggleMute();
     }
 }
@@ -281,12 +274,25 @@ void Qtilities::Application::onTrayIconActivated(QSystemTrayIcon::ActivationReas
 void Qtilities::Application::runMixer()
 {
     QString command = settings_.mixerCommand();
+    if (command.isEmpty())
+        return;
+
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
     QStringList args = QProcess::splitCommand(command);
     QProcess::startDetached(args.takeFirst(), args);
 #else
     QProcess::startDetached(command);
 #endif
+}
+
+void Qtilities::Application::updateDeviceList()
+{
+    if (!engine_)
+        return;
+
+    deviceList_.erase(deviceList_.begin(), deviceList_.end());
+    for (const AudioDevice *dev : engine_->sinks())
+        deviceList_.append(dev->description());
 }
 
 void Qtilities::Application::updateTrayIcon()
@@ -301,7 +307,9 @@ void Qtilities::Application::updateTrayIcon()
     else
         iconName = QLatin1String("audio-volume-high");
 
-    trayIcon_->setIcon(QIcon::fromTheme(iconName));
+    QString fallbackIconName = QStringLiteral(":/") + iconName;
+
+    trayIcon_->setIcon(QIcon::fromTheme(iconName, QIcon(fallbackIconName)));
 }
 
 int main(int argc, char* argv[])

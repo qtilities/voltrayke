@@ -1,6 +1,6 @@
 /*
     VolTrayke - Volume tray widget.
-    Copyright (C) 2021  Andrea Zanellato <redtid3@gmail.com>
+    Copyright (C) 2021-2023 Andrea Zanellato <redtid3@gmail.com>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
     SPDX-License-Identifier: GPL-2.0-only
 */
@@ -24,30 +24,16 @@
 #include <QDebug>
 #include <QSettings>
 
-namespace Qtilities {
-namespace Default {
-    const bool isNormalized = true;
-    const bool muteOnMiddleClick = true;
-    const bool useAutostart = false;
-    const double pageStep = 2.00;
-    const double singleStep = 1.00;
-#if 0
-    const bool ignoreMaxVolume = false;
-    const bool showAlwaysNotifications = false;
-    const bool showKeyboardNotifications = true;
-    const bool showOnLeftClick = true;
-#endif
-} // namespace Default
-} // namespace Qtilities
-
 Qtilities::Settings::Settings()
     : engineId_(-1)
     , channelId_(-1)
     , pageStep_(Default::pageStep)
     , singleStep_(Default::singleStep)
+    , isMuted_(Default::isMuted)
     , isNormalized_(Default::isNormalized)
     , muteOnMiddleClick_(Default::muteOnMiddleClick)
     , useAutostart_(Default::useAutostart)
+    , volume_(Default::volume)
     , mixerCommand_()
 #if 0
     , ignoreMaxVolume_(Default::ignoreMaxVolume)
@@ -56,11 +42,6 @@ Qtilities::Settings::Settings()
     , showOnLeftClick_(Default::showOnLeftClick)
 #endif
 {
-}
-
-Qtilities::Settings::~Settings()
-{
-    qDebug() << "Destroyed Settings";
 }
 
 void Qtilities::Settings::load()
@@ -73,12 +54,16 @@ void Qtilities::Settings::load()
     if (engineId < EngineId::EngineMax)
         engineId_ = engineId;
 
-    channelId_ = settings.value(QStringLiteral("ChannelId"), -1).toInt();
+    int volume = settings.value(QStringLiteral("Volume"), Default::volume).toInt();
+    if(volume >= 0 && volume <= 100)
+        volume_ = volume;
 
-    mixerCommand_ = settings.value(QStringLiteral("MixerCommand"), QString()).toString();
-    isNormalized_ = settings.value(QStringLiteral("IsNormalized"), Default::isNormalized).toBool();
-    muteOnMiddleClick_ = settings.value(QStringLiteral("MuteOnMiddleClick"), Default::muteOnMiddleClick).toBool();
     useAutostart_ = settings.value(QStringLiteral("Autostart"), Default::useAutostart).toBool();
+    channelId_ = settings.value(QStringLiteral("ChannelId"), -1).toInt();
+    isMuted_ = settings.value(QStringLiteral("IsMuted"), Default::isMuted).toBool();
+    isNormalized_ = settings.value(QStringLiteral("IsNormalized"), Default::isNormalized).toBool();
+    mixerCommand_ = settings.value(QStringLiteral("MixerCommand"), QString()).toString();
+    muteOnMiddleClick_ = settings.value(QStringLiteral("MuteOnMiddleClick"), Default::muteOnMiddleClick).toBool();
     pageStep_ = settings.value(QStringLiteral("PageStep"), Default::pageStep).toDouble();
     singleStep_ = settings.value(QStringLiteral("SingleStep"), Default::singleStep).toDouble();
 #if 0
@@ -95,14 +80,16 @@ void Qtilities::Settings::save()
                        QApplication::organizationName(),
                        QApplication::applicationDisplayName());
 
-    settings.setValue(QStringLiteral("EngineId"), engineId_);
+    settings.setValue(QStringLiteral("Autostart"), useAutostart_);
     settings.setValue(QStringLiteral("ChannelId"), channelId_);
+    settings.setValue(QStringLiteral("EngineId"), engineId_);
+    settings.setValue(QStringLiteral("IsMuted"), isMuted_);
+    settings.setValue(QStringLiteral("IsNormalized"), isNormalized_);
+    settings.setValue(QStringLiteral("MixerCommand"), mixerCommand_);
+    settings.setValue(QStringLiteral("MuteOnMiddleClick"), muteOnMiddleClick_);
     settings.setValue(QStringLiteral("PageStep"), pageStep_);
     settings.setValue(QStringLiteral("SingleStep"), singleStep_);
-    settings.setValue(QStringLiteral("IsNormalized"), isNormalized_);
-    settings.setValue(QStringLiteral("MuteOnMiddleClick"), muteOnMiddleClick_);
-    settings.setValue(QStringLiteral("Autostart"), useAutostart_);
-    settings.setValue(QStringLiteral("MixerCommand"), mixerCommand_);
+    settings.setValue(QStringLiteral("Volume"), volume_);
 #if 0
     settings.setValue(QStringLiteral("IgnoreMaxVolume"), ignoreMaxVolume_);
     settings.setValue(QStringLiteral("ShowAlwaysNotifications"), showAlwaysNotifications_);
