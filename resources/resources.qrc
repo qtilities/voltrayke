@@ -3,6 +3,10 @@
         <file alias="application-exit">icons/application-exit.svgz</file>
         <file alias="help-about">icons/help-about.svgz</file>
         <file alias="preferences-system">icons/preferences-system.svgz</file>
+        <file alias="audio-volume-high">icons/audio-volume-high.svgz</file>
+        <file alias="audio-volume-low">icons/audio-volume-low.svgz</file>
+        <file alias="audio-volume-medium">icons/audio-volume-medium.svgz</file>
+        <file alias="audio-volume-muted">icons/audio-volume-muted.svgz</file>
         <file alias="info">about.md</file>
         <file>authors</file>
         <file alias="license">copying</file>
