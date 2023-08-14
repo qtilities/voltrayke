@@ -38,6 +38,8 @@
 #include <QMenu>
 #include <QProcess>
 #include <QSystemTrayIcon>
+#include <QToolTip>
+#include <QWheelEvent>
 
 #include <QDebug>
 
@@ -108,12 +110,9 @@ void Qtilities::Application::initUi()
 
     if(channel_) {
         channel_->setMute(settings_.isMuted());
-
-        int volume = settings_.volume();
-        if(volume >= 0 && volume <= 100)
-            channel_->setVolume(volume);
-        else
-            mnuVolume_->setVolume(channel_->volume());
+        int volume = std::clamp(settings_.volume(), 0, 100);
+        channel_->setVolume(volume);
+        mnuVolume_->setVolume(channel_->volume());
     }
     actAutoStart_->setCheckable(true);
     actAutoStart_->setChecked(settings_.useAutostart());
@@ -134,6 +133,7 @@ void Qtilities::Application::initUi()
 
     trayIcon_->setContextMenu(mnuActions);
     trayIcon_->show();
+    trayIcon_->installEventFilter(this);
 
     connect(actAbout, &QAction::triggered, this, &Application::about);
     connect(actPrefs, &QAction::triggered, this, &Application::preferences);
@@ -298,11 +298,12 @@ void Qtilities::Application::updateDeviceList()
 void Qtilities::Application::updateTrayIcon()
 {
     QString iconName;
-    if (channel_->volume() <= 0 || channel_->mute())
+    int volume = channel_->volume();
+    if (volume <= 0 || channel_->mute())
         iconName = QLatin1String("audio-volume-muted");
-    else if (channel_->volume() <= 33)
+    else if (volume <= 33)
         iconName = QLatin1String("audio-volume-low");
-    else if (channel_->volume() <= 66)
+    else if (volume <= 66)
         iconName = QLatin1String("audio-volume-medium");
     else
         iconName = QLatin1String("audio-volume-high");
@@ -310,6 +311,20 @@ void Qtilities::Application::updateTrayIcon()
     QString fallbackIconName = QStringLiteral(":/") + iconName;
 
     trayIcon_->setIcon(QIcon::fromTheme(iconName, QIcon(fallbackIconName)));
+    trayIcon_->setToolTip(QString("%1\%").arg(volume));
+}
+
+bool Qtilities::Application::eventFilter(QObject *, QEvent *event)
+{
+    if (event->type() != QEvent::Wheel)
+        return false;
+
+    QWheelEvent *wheelEvent = static_cast<QWheelEvent *>(event);
+    int v = std::clamp(channel_->volume() + wheelEvent->angleDelta().y() / 120, 0, 100);
+    channel_->setVolume(v);
+    mnuVolume_->setVolume(v);
+    QToolTip::showText(wheelEvent->globalPosition().toPoint(), QString("%1\%").arg(v));
+    return true;
 }
 
 int main(int argc, char* argv[])

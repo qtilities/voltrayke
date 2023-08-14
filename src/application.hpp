@@ -44,6 +44,8 @@ public:
     Settings &settings() { return settings_; }
 
 private:
+    bool eventFilter(QObject *, QEvent *event);
+
     void initLocale();
     void initUi();
 
