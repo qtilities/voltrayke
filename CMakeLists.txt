@@ -3,14 +3,15 @@ project(VolTrayke
     VERSION 0.2.0
     LANGUAGES C CXX
 )
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD          17)
+set(CMAKE_CXX_EXTENSIONS        OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_INCLUDE_CURRENT_DIR   ON)
 #===============================================================================
 # Qt
 #===============================================================================
-option(PROJECT_TRANSLATIONS_UPDATE "Update source translations [default: OFF]" OFF)
-set(PROJECT_QT_VERSION 5 CACHE STRING "Qt version to use [default: 5]")
+option(PROJECT_TRANSLATIONS_UPDATE    "Update source translations [default: OFF]" OFF)
+set(PROJECT_QT_VERSION 5 CACHE STRING "Qt version to use          [default: 5]")
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -20,7 +21,7 @@ find_package(Qtilitools REQUIRED)
 #===============================================================================
 # Dependencies
 #===============================================================================
-option(PROJECT_USE_ALSA "Whether to use ALSA audio engine [default: ON]" ON)
+option(PROJECT_USE_ALSA       "Whether to use ALSA audio engine [default: ON]" ON)
 option(PROJECT_USE_PULSEAUDIO "Whether to use PulseAudio engine [default: ON]" ON)
 if(PROJECT_USE_ALSA)
     find_package(ALSA REQUIRED)
