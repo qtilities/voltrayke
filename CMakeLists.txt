@@ -28,6 +28,7 @@ endif()
 if(PROJECT_USE_PULSEAUDIO)
     find_package(PulseAudio REQUIRED)
 endif()
+find_package(StatusNotifierItemQt${QT_VERSION_MAJOR} REQUIRED)
 #===============================================================================
 # Project files
 #===============================================================================
@@ -41,8 +42,10 @@ set(PROJECT_SOURCES
     src/audio/engineid.hpp
     src/dialogabout.hpp
     src/dialogabout.cpp
+    src/dialogabout.ui
     src/dialogprefs.hpp
     src/dialogprefs.cpp
+    src/dialogprefs.ui
     src/menuvolume.hpp
     src/menuvolume.cpp
     src/qtilities.hpp
@@ -63,10 +66,6 @@ if(PROJECT_USE_PULSEAUDIO)
         src/audio/engine/pulseaudio.cpp
     )
 endif()
-set(PROJECT_UI_FILES
-    src/dialogabout.ui
-    src/dialogprefs.ui
-)
 set(PROJECT_OTHER_FILES
     .github/workflows/build.yml
     .clang-format
@@ -75,8 +74,8 @@ set(PROJECT_OTHER_FILES
     .gitignore
     README.md
 )
-source_group("Other Files" FILES ${PROJECT_OTHER_FILES})
-source_group("UI Files" FILES ${PROJECT_UI_FILES})
+source_group("Source" FILES ${PROJECT_SOURCES})
+source_group("Misc"   FILES ${PROJECT_OTHER_FILES})
 #===============================================================================
 # Resources
 #===============================================================================
@@ -92,7 +91,6 @@ set(PROJECT_ALL_FILES
     ${PROJECT_OTHER_FILES}
     ${PROJECT_QM_FILES}
     ${PROJECT_TRANSLATION_SOURCES}
-    ${PROJECT_UI_FILES}
 )
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(${PROJECT_NAME} MANUAL_FINALIZATION ${PROJECT_ALL_FILES})
@@ -115,6 +113,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt::Widgets
     ${ALSA_LIBRARIES}
     ${PULSEAUDIO_LIBRARY}
+    StatusNotifierItemQt${QT_VERSION_MAJOR}
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_ID}")
 
@@ -152,11 +151,6 @@ Qt version:                       ${QT_VERSION}
 Build type:                       ${CMAKE_BUILD_TYPE}
 Install prefix:                   ${CMAKE_INSTALL_PREFIX}
 Update translations before build: ${PROJECT_TRANSLATIONS_UPDATE}
-
-CXX Debug flags:                  ${CMAKE_CXX_FLAGS_DEBUG}
-CXX Release flags:                ${CMAKE_CXX_FLAGS_RELEASE}
-CXX MinSize flags:                ${CMAKE_CXX_FLAGS_MINSIZEREL}
-CXX RelWithDebInfo flags:         ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}
 ")
 
 if(QT_VERSION_MAJOR EQUAL 6)

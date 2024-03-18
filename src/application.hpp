@@ -23,12 +23,14 @@
 
 #include <QApplication>
 #include <QTranslator>
-#include <QSystemTrayIcon>
 
 class AudioDevice;
 class AudioEngine;
+class StatusNotifierItem;
 
+QT_BEGIN_NAMESPACE
 class QAction;
+QT_END_NAMESPACE
 
 namespace Qtilities {
 
@@ -44,8 +46,6 @@ public:
     Settings &settings() { return settings_; }
 
 private:
-    bool eventFilter(QObject *, QEvent *event);
-
     void initLocale();
     void initUi();
 
@@ -57,13 +57,16 @@ private:
     void onAudioDeviceChanged(int);
     void onAudioEngineChanged(int);
     void onPrefsChanged();
-    void onTrayIconActivated(QSystemTrayIcon::ActivationReason);
+    void onActivateRequested(const QPoint&);
+    void onSecondaryActivateRequested(const QPoint&);
+    void onScrollRequested(int delta, Qt::Orientation);
+
     void onVolumeChanged(int);
 
     QStringList deviceList_;
     QTranslator qtTranslator_, translator_;
     Settings settings_;
-    QSystemTrayIcon *trayIcon_;
+    StatusNotifierItem *trayIcon_;
     QAction *actAutoStart_;
     MenuVolume *mnuVolume_;
     AudioEngine *engine_;

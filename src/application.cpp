@@ -32,12 +32,17 @@
 #include "audio/engine/pulseaudio.hpp"
 #endif
 
+#if QT_VERSION < 0x060000
+    #include <StatusNotifierItemQt5/statusnotifieritem.h>
+#else
+    #include <StatusNotifierItemQt6/statusnotifieritem.h>
+#endif
+
 #include <QAction>
 #include <QIcon>
 #include <QLibraryInfo>
 #include <QMenu>
 #include <QProcess>
-#include <QSystemTrayIcon>
 #include <QToolTip>
 #include <QWheelEvent>
 
@@ -45,7 +50,6 @@
 
 Qtilities::Application::Application(int argc, char* argv[])
     : QApplication(argc, argv)
-    , trayIcon_(new QSystemTrayIcon(this))
     , engine_(nullptr)
     , channel_(nullptr)
 {
@@ -53,6 +57,11 @@ Qtilities::Application::Application(int argc, char* argv[])
     setOrganizationDomain(ORGANIZATION_DOMAIN);
     setApplicationName(APPLICATION_NAME);
     setApplicationDisplayName(APPLICATION_DISPLAY_NAME);
+
+    trayIcon_ = new StatusNotifierItem(qApp->applicationName(), this);
+    trayIcon_->setCategory(StatusNotifierItem::SNICategory::ApplicationStatus);
+    trayIcon_->setStatus(StatusNotifierItem::SNIStatus::Active);
+    trayIcon_->setToolTipTitle(qApp->applicationDisplayName());
 
     setQuitOnLastWindowClosed(false);
 
@@ -132,8 +141,6 @@ void Qtilities::Application::initUi()
     mnuActions->addAction(actQuit);
 
     trayIcon_->setContextMenu(mnuActions);
-    trayIcon_->show();
-    trayIcon_->installEventFilter(this);
 
     connect(actAbout, &QAction::triggered, this, &Application::about);
     connect(actPrefs, &QAction::triggered, this, &Application::preferences);
@@ -152,7 +159,9 @@ void Qtilities::Application::initUi()
         updateTrayIcon();
     });
     connect(mnuVolume_, &MenuVolume::sigVolumeChanged, this, &Application::onVolumeChanged);
-    connect(trayIcon_, &QSystemTrayIcon::activated, this, &Application::onTrayIconActivated);
+    connect(trayIcon_, &StatusNotifierItem::activateRequested, this, &Application::onActivateRequested);
+    connect(trayIcon_, &StatusNotifierItem::secondaryActivateRequested, this, &Application::onSecondaryActivateRequested);
+    connect(trayIcon_, &StatusNotifierItem::scrollRequested, this, &Application::onScrollRequested);
 }
 
 void Qtilities::Application::about()
@@ -260,15 +269,33 @@ void Qtilities::Application::onAboutToQuit()
     settings_.save();
 }
 
-void Qtilities::Application::onTrayIconActivated(QSystemTrayIcon::ActivationReason reason)
+void Qtilities::Application::onActivateRequested(const QPoint&)
 {
-    if (reason == QSystemTrayIcon::Trigger || reason == QSystemTrayIcon::DoubleClick) {
+    if (trayIcon_->status() == StatusNotifierItem::SNIStatus::Active) {
+        trayIcon_->setStatus(StatusNotifierItem::SNIStatus::Passive);
+        mnuVolume_->hide();
+    } else {
+        trayIcon_->setStatus(StatusNotifierItem::SNIStatus::Active);
         mnuVolume_->show();
         mnuVolume_->adjustSize();
         mnuVolume_->popUp();
-    } else if (channel_ && settings_.muteOnMiddleClick() && reason == QSystemTrayIcon::MiddleClick) {
-        channel_->toggleMute();
     }
+}
+
+void Qtilities::Application::onSecondaryActivateRequested(const QPoint&)
+{
+    if (channel_ && settings_.muteOnMiddleClick())
+        channel_->toggleMute();
+}
+
+void Qtilities::Application::onScrollRequested(int delta, Qt::Orientation)
+{
+    int v = std::clamp(channel_->volume() + delta / 120, 0, 100);
+    channel_->setVolume(v);
+    mnuVolume_->setVolume(v);
+//  trayIcon_->setToolTipTitle(QString("%1\%").arg(v));
+    QToolTip::showText(QCursor::pos(), QString("%1\%").arg(v));
+    QToolTip::hideText();
 }
 
 void Qtilities::Application::runMixer()
@@ -308,23 +335,7 @@ void Qtilities::Application::updateTrayIcon()
     else
         iconName = QLatin1String("audio-volume-high");
 
-    QString fallbackIconName = QStringLiteral(":/") + iconName;
-
-    trayIcon_->setIcon(QIcon::fromTheme(iconName, QIcon(fallbackIconName)));
-    trayIcon_->setToolTip(QString("%1\%").arg(volume));
-}
-
-bool Qtilities::Application::eventFilter(QObject *, QEvent *event)
-{
-    if (event->type() != QEvent::Wheel)
-        return false;
-
-    QWheelEvent *wheelEvent = static_cast<QWheelEvent *>(event);
-    int v = std::clamp(channel_->volume() + wheelEvent->angleDelta().y() / 120, 0, 100);
-    channel_->setVolume(v);
-    mnuVolume_->setVolume(v);
-    QToolTip::showText(wheelEvent->globalPosition().toPoint(), QString("%1\%").arg(v));
-    return true;
+    trayIcon_->setIconByName(iconName);
 }
 
 int main(int argc, char* argv[])
